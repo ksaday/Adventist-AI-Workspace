@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "topics": [
+    {
+      "id": "sabbath",
+      "titleEn": "Sabbath",
+      "titleKo": "안식일",
+      "anchorPassages": ["GEN.2.1-GEN.2.3", "EXO.20.8-EXO.20.11", "ISA.58.13-ISA.58.14", "MRK.2.27-MRK.2.28"]
+    },
+    {
+      "id": "salvation_grace",
+      "titleEn": "Salvation by Grace through Faith",
+      "titleKo": "믿음으로 말미암는 은혜의 구원",
+      "anchorPassages": ["EPH.2.8-EPH.2.10", "ROM.3.23-ROM.3.26", "ROM.5.1-ROM.5.2", "TIT.3.5"]
+    },
+    {
+      "id": "comfort_peace",
+      "titleEn": "Comfort in Trial and Sorrow",
+      "titleKo": "시련과 슬픔 중의 위로",
+      "anchorPassages": ["PSA.23.1-PSA.23.6", "PSA.46.1", "JHN.14.1-JHN.14.3", "PHP.4.6-PHP.4.7"]
+    },
+    {
+      "id": "second_advent",
+      "titleEn": "The Second Coming of Christ",
+      "titleKo": "그리스도의 재림",
+      "anchorPassages": ["1TH.4.16-1TH.4.18", "REV.1.7", "REV.22.20", "ACT.1.11"]
+    },
+    {
+      "id": "sanctuary",
+      "titleEn": "The Sanctuary and Heavenly Ministry",
+      "titleKo": "성소와 하늘 봉사",
+      "anchorPassages": ["HEB.8.1-HEB.8.2", "HEB.9.11-HEB.9.12", "DAN.8.14", "LEV.16.29-LEV.16.34"]
+    }
+  ]
+}

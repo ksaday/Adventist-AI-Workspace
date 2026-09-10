@@ -4,6 +4,7 @@ import { pseudoLocalize } from './pseudo-localizer.js';
 
 export * from './catalogues.js';
 export * from './pseudo-localizer.js';
+export * from './detector.js';
 
 export type SupportedLocale = 'en' | 'ko';
 export const SUPPORTED_LOCALES: readonly SupportedLocale[] = ['en', 'ko'] as const;

@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "directory": [
+    {
+      "region": "US",
+      "category": "self_harm",
+      "name": "Suicide & Crisis Lifeline",
+      "contact": "988",
+      "available": "24/7"
+    },
+    {
+      "region": "KR",
+      "category": "self_harm",
+      "name": "자살예방 상담전화",
+      "contact": "109",
+      "available": "24/7"
+    },
+    {
+      "region": "GLOBAL",
+      "category": "medical_emergency",
+      "name": "Local Emergency Services",
+      "contact": "911 / 112 / 999",
+      "available": "Immediate"
+    }
+  ]
+}

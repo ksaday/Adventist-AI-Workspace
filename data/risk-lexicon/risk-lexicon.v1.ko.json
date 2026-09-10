@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "locale": "ko",
+  "entries": [
+    { "term": "자살", "category": "self_harm", "severity": 3 },
+    { "term": "죽고 싶다", "category": "self_harm", "severity": 2 },
+    { "term": "스스로 목숨을", "category": "self_harm", "severity": 3 },
+    { "term": "폭행", "category": "abuse", "severity": 3 },
+    { "term": "약물 과다복용", "category": "medical_emergency", "severity": 3 }
+  ]
+}

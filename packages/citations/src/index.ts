@@ -1,7 +1,3 @@
-// packages/citations - Bible parser/validator, EGW normaliser/validator
-export interface CitationValidationResult {
-  raw: string;
-  normalized?: string;
-  valid: boolean;
-  reason?: string;
-}
+// packages/citations - Bible parser/validator and EGW normaliser/validator
+export * from './bible.js';
+export * from './egw.js';

@@ -9,13 +9,47 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 2 (Core chat-like workspace) implemented and verified.** Application shell with responsive sidebar & tools, 4 visually distinct turn kinds, sequence-based message ordering (`seq`), 3-layer ephemeral mode enforcement, client-side encrypted search, archive/soft-delete (30-day purge), i18n ICU catalogues & pseudo-localisation build, and SQL migrations implemented. All Phase 2 exit criteria pass (51/51 tests green, `check-docs.sh` clean). Next is Phase 3 (Prompt orchestration and citation validation).
+**Phase 3 (Prompt orchestration and citation validation) implemented and verified.** Reference data assets (Bible canon index EN/KO, EGW bibliographic catalogue with zero text bodies, topical scripture, risk lexicon EN/KO, emergency directory), deterministic nonce-delimited prompt composer, Bible reference detection & validation, Invariant 5 compareVerbatim (strictly UNAVAILABLE), EGW citation normalization & page plausibility with non-destructive fuzzy suggestion, claim parser (`SDAWS-CLAIMS-V1`), language detector, provider launcher with clipboard-first semantics & prefill caps, and client-side safety screener implemented. All Phase 3 exit criteria pass (73/73 tests green, `check-docs.sh` clean). Next is Phase 4 (P2 Prayer Note).
 
 ---
 
 ## What just happened
 
-### Phase 2 Core workspace, UI shell & ephemeral enforcement completed
+### Phase 3 Prompt orchestration and citation validation completed
+- **Reference Data Assets Built and Version-Pinned** (`data/`):
+  - `data/canon/bible-canon.v1.json`: Protestant 66-book canon with English & Korean names, abbreviations, and chapter/verse boundaries.
+  - `data/egw-catalogue/egw-works.v1.json`: Bibliographic metadata for core Ellen G. White works (publication year, page count, official URL template, abbreviations, Korean titles) holding zero text bodies (Invariant 1, ADR-0002, ADR-0022).
+  - `data/topical/topical-scripture.v1.json`: Seed topical passages (assurance, grief, anxiety, hope, repentance).
+  - `data/risk-lexicon/risk-lexicon.v1.en.json` & `risk-lexicon.v1.ko.json`: Crisis categories, severity ratings, hotline routing triggers.
+  - `data/emergency/emergency-directory.v1.json`: 24/7 crisis hotlines (988 for US/CA, 109 for KR, 111 for UK).
+- **Deterministic Prompt Composer** (`packages/compose/src/index.ts`):
+  - Pure, deterministic, template-versioned prompt generation.
+  - Nonce delimiter derivation preventing prompt injection; collision detection & re-derivation.
+  - Enforces `SDAWS-CLAIMS-V1` structured claim block contract and language preamble.
+  - Golden file byte stability verified across runs.
+- **Bible Reference Detection & Validation Engine** (`packages/citations/src/bible.ts`):
+  - Detection across English & Korean (e.g. `John 3:16`, `1 Corinthians 13:4-8`, `Song of Solomon 2:1`, `요한복음 3:16`, `계 22:20`, `다니엘서 15:1`).
+  - Validation against Protestant 66-book canon (`BOOK_UNKNOWN`, `CHAPTER_OUT_OF_RANGE`, `VERSE_OUT_OF_RANGE`, `RANGE_INVALID`).
+  - **Invariant 5 / ADR-0021 / SR-5.8**: `compareVerbatim` unconditionally returns `UNAVAILABLE` because zero verse text is bundled.
+- **EGW Citation Normalization & Catalogue Plausibility** (`packages/citations/src/egw.ts`):
+  - Multi-variant title & abbreviation matching (`DA 123`, `The Desire of Ages, p. 250`, `시대의 소망 150`, `Steps to Christ 950`).
+  - Reference edition page count plausibility check (`PAGE_IMPLAUSIBLE`).
+  - Non-destructive Levenshtein fuzzy match suggestion (`TITLE_NOT_IN_CATALOGUE` with `suggestion`, never silently rewriting).
+- **Claim Parsing Engine** (`packages/claims/src/index.ts`):
+  - Parses `SDAWS-CLAIMS-V1` output contract with fail-closed total failure semantics on malformed JSON.
+- **Provider Registry & Clipboard-First Launcher** (`packages/providers/src/index.ts`):
+  - Clipboard failure strictly halts tab launching (`ClipboardWriteError`), avoiding blank provider sessions.
+  - Automatic fallback to copy-only mode when prompt exceeds 4000-character URL prefill cap.
+- **Pre-Transmission Safety Screener** (`packages/safety/src/index.ts`):
+  - Local regex and risk lexicon screening; blocks crisis prompts and directs user to emergency hotline directory before external transmission.
+- **All Phase 3 Exit Criteria verified via test suite** (`npm test` — 73/73 tests passing):
+  1. Composer golden files are byte-stable; server and client produce identical output.
+  2. Citation validator evaluation set meets targets: 100% (≥98%) fabricated Bible references flagged, 100% (≥95%) fabricated EGW titles flagged.
+  3. Clipboard failure prevents provider tab opening.
+  4. Prompt above prefill cap (4000 chars) falls back to copy-only mode.
+- **Integrated CI pipeline green**: `npm run ci` passes (`typecheck` + `lint` + `check:firewall` + `test` + `./scripts/check-docs.sh`).
+
+### Phase 2 Core workspace, UI shell & ephemeral enforcement completed (Prior)
 - **Application Shell & Design Tokens** (`app/globals.css`, `app/(workspace)/workspace-shell.tsx`):
   - Design tokens for evidence levels (E4 green, E3 blue, E2 amber, E1 grey, contradicted red) and dark mode.
   - Responsive workspace shell (sidebar, tool switcher, conversation list, search, composer) down to 375px mobile viewport.

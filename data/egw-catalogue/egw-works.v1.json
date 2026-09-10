@@ -1,0 +1,127 @@
+{
+  "version": "1.0",
+  "catalogue": "egw-bibliographic-metadata-v1",
+  "notice": "Bibliographic metadata only. Holds zero Ellen G. White text, excerpts, or bodies (Invariant 1, ADR-0002, ADR-0022).",
+  "works": [
+    {
+      "workId": "DA",
+      "canonicalTitle": "The Desire of Ages",
+      "abbreviations": ["DA", "DofA"],
+      "author": "Ellen G. White",
+      "publisher": "Pacific Press Publishing Association",
+      "firstPublished": 1898,
+      "referenceEdition": { "year": 1940, "pageCount": 835 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/130/{page}",
+      "localisedTitles": { "ko": "시대의 소망" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "SC",
+      "canonicalTitle": "Steps to Christ",
+      "abbreviations": ["SC", "StC"],
+      "author": "Ellen G. White",
+      "publisher": "Fleming H. Revell Company",
+      "firstPublished": 1892,
+      "referenceEdition": { "year": 1896, "pageCount": 126 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/108/{page}",
+      "localisedTitles": { "ko": "정로의 계단" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "GC",
+      "canonicalTitle": "The Great Controversy",
+      "abbreviations": ["GC", "GrC"],
+      "author": "Ellen G. White",
+      "publisher": "Pacific Press Publishing Association",
+      "firstPublished": 1888,
+      "referenceEdition": { "year": 1911, "pageCount": 678 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/132/{page}",
+      "localisedTitles": { "ko": "각 시대의 대쟁투" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "PP",
+      "canonicalTitle": "Patriarchs and Prophets",
+      "abbreviations": ["PP", "PandP"],
+      "author": "Ellen G. White",
+      "publisher": "Pacific Press Publishing Association",
+      "firstPublished": 1890,
+      "referenceEdition": { "year": 1913, "pageCount": 755 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/128/{page}",
+      "localisedTitles": { "ko": "부조와 선지자" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "PK",
+      "canonicalTitle": "Prophets and Kings",
+      "abbreviations": ["PK", "PandK"],
+      "author": "Ellen G. White",
+      "publisher": "Pacific Press Publishing Association",
+      "firstPublished": 1917,
+      "referenceEdition": { "year": 1917, "pageCount": 733 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/129/{page}",
+      "localisedTitles": { "ko": "선지자와 왕" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "AA",
+      "canonicalTitle": "The Acts of the Apostles",
+      "abbreviations": ["AA", "AofA"],
+      "author": "Ellen G. White",
+      "publisher": "Pacific Press Publishing Association",
+      "firstPublished": 1911,
+      "referenceEdition": { "year": 1911, "pageCount": 602 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/131/{page}",
+      "localisedTitles": { "ko": "사도행전" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "COL",
+      "canonicalTitle": "Christ's Object Lessons",
+      "abbreviations": ["COL"],
+      "author": "Ellen G. White",
+      "publisher": "Review and Herald Publishing Association",
+      "firstPublished": 1900,
+      "referenceEdition": { "year": 1900, "pageCount": 421 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/15/{page}",
+      "localisedTitles": { "ko": "실물교훈" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "MH",
+      "canonicalTitle": "The Ministry of Healing",
+      "abbreviations": ["MH", "MofH"],
+      "author": "Ellen G. White",
+      "publisher": "Pacific Press Publishing Association",
+      "firstPublished": 1905,
+      "referenceEdition": { "year": 1905, "pageCount": 516 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/135/{page}",
+      "localisedTitles": { "ko": "치료봉사" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "Ed",
+      "canonicalTitle": "Education",
+      "abbreviations": ["Ed", "Educ"],
+      "author": "Ellen G. White",
+      "publisher": "Pacific Press Publishing Association",
+      "firstPublished": 1903,
+      "referenceEdition": { "year": 1903, "pageCount": 309 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/29/{page}",
+      "localisedTitles": { "ko": "교육" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "1T",
+      "canonicalTitle": "Testimonies for the Church, vol. 1",
+      "abbreviations": ["1T", "1Test"],
+      "author": "Ellen G. White",
+      "publisher": "Pacific Press Publishing Association",
+      "firstPublished": 1868,
+      "referenceEdition": { "year": 1948, "pageCount": 718 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/114/{page}",
+      "localisedTitles": { "ko": "교회증언 1권" },
+      "lastReviewed": "2026-08-01"
+    }
+  ]
+}
