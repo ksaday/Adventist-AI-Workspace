@@ -9,13 +9,54 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 6 (P4 Pastor's Aids) implemented and verified.** The parameter panel with live anchor-passage validation against the canon index (PR-P4-03, PR-P4-04), all 12 homiletic & study task types with their prompt templates (PR-P4-02), strict EGW leads mode (PR-P4-05: leads only to study, never text), structured editable outline workspace (PR-P4-06: title, thesis, points, sub-points, illustration placeholders, appeal), multi-format outline export to Markdown, plain text, and print-friendly HTML with evidence levels and E4 confirming metadata (PR-P4-07), pre-pulpit Citation Checklist strictly blocking "Mark Ready" while any citation marked for verbatim quotation sits below E4 (PR-P4-09, Invariant 3 / ADR-0019), pastor tier entitlement gating (Membership §3.2), and verified zero file-upload capability (PR-P4-01). All Phase 6 exit criteria pass (121/121 tests green, `check-docs.sh` clean). Next is Phase 7 (Source Verification & Attestation).
+**Phase 7 (Source Verification & Attestation) implemented and verified.** Verification conversations with bidirectional links and origin tombstones (SR-6.7); claim block parser with total-failure semantics and manual segmentation; claim ledger with mandatory pairing of status and evidence level chip; normative evidence state machine (`mayAssertOfficialVerification` using strict equality, `permittedStatuses`, `assertLegalStatusLevel`, `raise`); verifier output parser (`SDAWS-VERIFY-V1`) and merge engine with basis cross-checking against supplied source presence; attestation binding to pinned Source Directory revisions, WHATWG-canonicalized URL, strict host match, and directory path prefix (`starts_with` and `length > prefix.length`, bare prefix/search/sibling rejected, dot/%2e/backslash/empty escapes rejected); actor ownership invariant (`actor_id = user_id`); database migration `0004_phase7_evidence.sql` with CHECK constraints and `MATCH FULL` composite foreign key; Three-Column Honesty Contract in-product; and full 10-vector false-verification red-team suite. All Phase 7 exit criteria pass (158/158 tests green, `check-docs.sh` clean). Next is Phase 8 (Security hardening and administration).
 
 ---
 
 ## What just happened
 
-### Phase 6 P4 Pastor's Aids completed
+### Phase 7 Source Verification & Attestation completed
+- **Source Directory Dataset & Service** (`data/source-directory/source-directory.v1.json`, `packages/evidence/src/directory.ts`, `server/domain/source-directory.ts`):
+  - Append-only revision series with pinned entries (SR-7.1, SR-7.2): `egw_library_read` (host `egwwritings.org`, prefix `/read/`, attestation-eligible: true, active), `egw_search_landing` (attestation-eligible: false), `adventist_archives` (GC Archives), `bri_research` (Biblical Research Institute).
+- **Domain Models & State Machine** (`packages/evidence/src/types.ts`, `packages/evidence/src/state-machine.ts`):
+  - Levels: `E0` (no source), `E1` (model recall), `E2` (corroboration), `E3` (supplied-text consistency), `E4` (confirmed by you at official source).
+  - Permitted statuses matrix: E0/E1 (`NOT_VERIFIED`, `INSUFFICIENT_EVIDENCE`), E2 (`NOT_VERIFIED`, `INSUFFICIENT_EVIDENCE`, `CONTRADICTED`), E3 (includes `TEXT_CONSISTENT`), E4 (includes `VERIFIED`, `PARTIALLY_VERIFIED`).
+  - Strict equality rendering guard: `mayAssertOfficialVerification(level === 'E4')`. Ordinal comparisons strictly forbidden.
+  - `raise(current, next)` allows automated progression E0→E1→E2 only; requires recorded `source_block_ref_id` for E3 and owner-matched attestation (`actor_id = user_id`) for E4.
+- **Attestation Guard & URL Canonicalizer** (`packages/evidence/src/attestation.ts`):
+  - WHATWG URL parse: forces HTTPS scheme, rejects credentials/userinfo, rejects explicit ports (including 443), rejects raw IP and localhost addresses.
+  - Path escape detection: rejects dot segments (`..`, `.`), encoded dot segments (`%2e`), backslashes (`\`), and empty segments (`//`).
+  - Exact host match: rejects lookalike domains (`egwwritings.org.attacker.com`, `evangelicalegwwritings.org`).
+  - Directory path prefix: requires `starts_with(path, prefix)` and `length(path) > length(prefix)`. Bare prefix (`/read/`), homepage (`/`), search page, and sibling prefixes (`/reading/`) strictly rejected.
+  - Rejection with explanation: returns actionable reason codes, never silently downgrading.
+- **Verifier Block Parser & Merge Engine** (`packages/evidence/src/verifier-parser.ts`, `packages/compose/src/templates/verify.ts`):
+  - Parses `SDAWS-VERIFY-V1` code fence with fail-closed total failure semantics.
+  - Basis cross-checking: verifier claiming `compared-to-supplied-text` without source blocks in conversation is downgraded to E2 with an explanatory ledger note.
+  - Disagreement produces `CONTRADICTED` at E2; agreement leaves status `NOT_VERIFIED` at E2.
+- **Database Schema Migration** (`server/data/migrations/0004_phase7_evidence.sql`):
+  - DDL for `source_directory_entry`, `source_directory_entry_revision`, cross-table deferred FK `current_revision_exists`, `verification` (with `origin_tombstone`), `claim`, and `evidence_record`.
+  - Enforces `verified_requires_member_confirmation`: `status NOT IN ('VERIFIED','PARTIALLY_VERIFIED') OR evidence_level = 'E4'`.
+  - Enforces `text_consistent_is_e3_only`: `status <> 'TEXT_CONSISTENT' OR evidence_level = 'E3'`.
+  - Enforces `e4_requires_bound_attestation`: complete non-null composite fields, `actor_id = user_id`, path prefix length check, escape regexes.
+  - Enforces `e4_binds_to_directory_revision`: composite FK to directory revision with `MATCH FULL`.
+- **Claim Ledger & Verification Service** (`server/domain/evidence.ts`):
+  - Bidirectional origin conversation links with automatic tombstoning upon origin deletion (SR-6.7).
+  - Claims persistence at E1 model recall initially.
+  - Strict owner check along the whole chain: claim → evidence → attester (`actor_id = user_id`).
+- **Interactive UI & Honesty Contract** (`app/(workspace)/verification-workbench.tsx`, `app/(workspace)/workspace-shell.tsx`):
+  - Three-column honesty contract modal displaying the exact table from Verification Architecture §3.
+  - Mandatory pairing of status badge and evidence level chip; E4 green, E3 blue, E2 amber, contradicted red.
+  - Deterministic findings (Bible canon check, EGW catalogue check, page plausibility) render first before AI options (Exit Criterion 4).
+  - Attestation modal with live URL canonicalization and source directory validation.
+  - Full English and Korean translation parity in `packages/i18n/src/catalogues.ts`.
+- **All Phase 7 Exit Criteria verified via test suite** (`npm test` — 158/158 tests passing):
+  1. The false-verification red-team suite passes with zero failures across all 10 adversarial vectors.
+  2. Database constraints reject VERIFIED below E4, TEXT_CONSISTENT outside E3, and partially-NULL rows via MATCH FULL.
+  3. Catalogue lint finds no verification-claiming string without the E4 guard.
+  4. Deterministic findings render before any AI action.
+- **Integrated CI pipeline green**: `npm run ci` passes (`typecheck` + `lint` + `check:firewall` + `test` + `./scripts/check-docs.sh`).
+
+### Phase 6 P4 Pastor's Aids completed (Prior)
 - **Parameter Panel & Live Validation** (`packages/pastor/src/types.ts`, `app/(workspace)/pastors-aids.tsx`):
   - 13 controllable homiletic parameters: topic, anchor passage, occasion, audience, duration (15-60 min), point count (1-5), homiletic form (expository/textual/topical/narrative), tone, depth, Bible emphasis (1-5), EGW emphasis (none/light/moderate), outline format, and preferred translation (PR-P4-03).
   - Live Protestant 66-book canon validation on the anchor-passage field before any AI prompt is generated (UX §6.3).

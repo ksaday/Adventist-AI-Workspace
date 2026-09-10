@@ -1,0 +1,82 @@
+[
+  {
+    "id": "egw_library_read",
+    "purpose": "egw_official",
+    "currentRevision": 1,
+    "revisions": [
+      {
+        "revision": 1,
+        "name": "Ellen G. White Writings (Official Library)",
+        "host": "egwwritings.org",
+        "baseUrl": "https://egwwritings.org",
+        "urlTemplate": "https://egwwritings.org/search?query={query}",
+        "locale": "en",
+        "attestationEligible": true,
+        "attestationPathPrefix": "/read/",
+        "status": "active",
+        "lastReviewed": "2026-09-01",
+        "notes": "Official EGW Estate online reading platform."
+      }
+    ]
+  },
+  {
+    "id": "egw_search_landing",
+    "purpose": "egw_official",
+    "currentRevision": 1,
+    "revisions": [
+      {
+        "revision": 1,
+        "name": "Ellen G. White Search & Landing",
+        "host": "egwwritings.org",
+        "baseUrl": "https://egwwritings.org",
+        "urlTemplate": "https://egwwritings.org/search?query={query}",
+        "locale": "en",
+        "attestationEligible": false,
+        "attestationPathPrefix": null,
+        "status": "active",
+        "lastReviewed": "2026-09-01",
+        "notes": "Search results and landing entry. Not eligible for claim attestation."
+      }
+    ]
+  },
+  {
+    "id": "adventist_archives",
+    "purpose": "reference",
+    "currentRevision": 1,
+    "revisions": [
+      {
+        "revision": 1,
+        "name": "General Conference Office of Archives, Statistics, and Research",
+        "host": "documents.adventistarchives.org",
+        "baseUrl": "https://documents.adventistarchives.org",
+        "urlTemplate": "https://documents.adventistarchives.org/search?q={query}",
+        "locale": "en",
+        "attestationEligible": true,
+        "attestationPathPrefix": "/Periodicals/",
+        "status": "active",
+        "lastReviewed": "2026-09-01",
+        "notes": "Historical Adventist periodicals and official documents archive."
+      }
+    ]
+  },
+  {
+    "id": "bri_research",
+    "purpose": "reference",
+    "currentRevision": 1,
+    "revisions": [
+      {
+        "revision": 1,
+        "name": "Biblical Research Institute",
+        "host": "www.adventistbiblicalresearch.org",
+        "baseUrl": "https://www.adventistbiblicalresearch.org",
+        "urlTemplate": "https://www.adventistbiblicalresearch.org/?s={query}",
+        "locale": "en",
+        "attestationEligible": true,
+        "attestationPathPrefix": "/materials/",
+        "status": "active",
+        "lastReviewed": "2026-09-01",
+        "notes": "Official General Conference theological research materials."
+      }
+    ]
+  }
+]

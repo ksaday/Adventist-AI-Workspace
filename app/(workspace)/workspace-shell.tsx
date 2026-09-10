@@ -6,6 +6,7 @@ import { TurnUser, TurnWorkspace, TurnAssistantExternal, TurnSystemNote } from '
 import { PrayerNote } from './prayer-note.js';
 import { SpiritualGuidanceWorkspace } from './spiritual-guidance.js';
 import { PastorsAidsWorkspace } from './pastors-aids.js';
+import { VerificationWorkbench } from './verification-workbench.js';
 
 export interface MessageItem {
   seq: number;
@@ -24,11 +25,11 @@ export function WorkspaceShell({
   initialMessages?: MessageItem[];
   locale?: SupportedLocale;
   isEphemeral?: boolean;
-  initialTool?: 'prayer' | 'guidance' | 'pastor';
+  initialTool?: 'prayer' | 'guidance' | 'pastor' | 'verify';
 }) {
   const [messages] = useState<MessageItem[]>(initialMessages);
   const [inputText, setInputText] = useState('');
-  const [activeTool, setActiveTool] = useState<'prayer' | 'guidance' | 'pastor'>(initialTool);
+  const [activeTool, setActiveTool] = useState<'prayer' | 'guidance' | 'pastor' | 'verify'>(initialTool);
   const [ephemeralMode, setEphemeralMode] = useState(isEphemeral);
 
   return (
@@ -132,7 +133,26 @@ export function WorkspaceShell({
                   textAlign: 'left',
                 }}
               >
-                ○ {t('tool_pastor_aids', {}, { locale })} <span title="Pastor tier">ᴾ</span>
+                {activeTool === 'pastor' ? '●' : '○'} {t('tool_pastor_aids', {}, { locale })} <span title="Pastor tier">ᴾ</span>
+              </button>
+            </li>
+            <li style={{ padding: '0.4rem 0' }}>
+              <button
+                type="button"
+                onClick={() => setActiveTool('verify')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: activeTool === 'verify' ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  fontWeight: activeTool === 'verify' ? 700 : 400,
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  textAlign: 'left',
+                }}
+              >
+                {activeTool === 'verify' ? '●' : '○'} {t('tool_verification', {}, { locale })}
               </button>
             </li>
           </ul>
@@ -181,6 +201,13 @@ export function WorkspaceShell({
           <SpiritualGuidanceWorkspace locale={locale} />
         ) : activeTool === 'pastor' ? (
           <PastorsAidsWorkspace locale={locale} />
+        ) : activeTool === 'verify' ? (
+          <VerificationWorkbench
+            locale={locale}
+            claims={[]}
+            currentUserId="user_default"
+            onBackToOrigin={() => setActiveTool('guidance')}
+          />
         ) : (
           <>
             {/* Timeline Header */}

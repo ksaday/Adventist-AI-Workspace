@@ -7,6 +7,7 @@ export * from './pseudo-localizer.js';
 export * from './detector.js';
 
 export type SupportedLocale = 'en' | 'ko';
+export type Locale = SupportedLocale;
 export const SUPPORTED_LOCALES: readonly SupportedLocale[] = ['en', 'ko'] as const;
 
 export interface I18nOptions {

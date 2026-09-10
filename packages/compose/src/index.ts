@@ -206,3 +206,5 @@ export function compose(input: ComposeInput): ComposeOutput {
     warnings,
   };
 }
+
+export * from './templates/verify.js';
