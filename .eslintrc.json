@@ -1,0 +1,63 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": [
+              "openai",
+              "@anthropic-ai/*",
+              "@google/generative-ai",
+              "@google/genai",
+              "cohere-ai",
+              "replicate",
+              "together-ai",
+              "langchain*",
+              "llamaindex"
+            ],
+            "message": "SR-10.1 Cost Firewall violation: LLM provider SDKs are strictly forbidden on server and client."
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["packages/**/*"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@/server/*",
+                  "../server/*",
+                  "../../server/*",
+                  "../../../server/*"
+                ],
+                "message": "Component Architecture violation: packages/* may not import server/* (packages must remain pure/client-compatible)."
+              },
+              {
+                "group": [
+                  "openai",
+                  "@anthropic-ai/*",
+                  "@google/generative-ai",
+                  "@google/genai",
+                  "cohere-ai",
+                  "replicate",
+                  "together-ai",
+                  "langchain*",
+                  "llamaindex"
+                ],
+                "message": "SR-10.1 Cost Firewall violation: LLM provider SDKs are strictly forbidden."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

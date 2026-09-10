@@ -9,14 +9,82 @@ this file is the situation.
 
 ## Status in one line
 
-**Design complete at v1.1, not implemented.** 50 design documents, 22 ADRs, zero lines of
-application code. The next piece of work is either implementation Phase 0 or another review
-round — not more document revision.
+**Phase 2 (Core chat-like workspace) implemented and verified.** Application shell with responsive sidebar & tools, 4 visually distinct turn kinds, sequence-based message ordering (`seq`), 3-layer ephemeral mode enforcement, client-side encrypted search, archive/soft-delete (30-day purge), i18n ICU catalogues & pseudo-localisation build, and SQL migrations implemented. All Phase 2 exit criteria pass (51/51 tests green, `check-docs.sh` clean). Next is Phase 3 (Prompt orchestration and citation validation).
 
 ---
 
 ## What just happened
 
+### Phase 2 Core workspace, UI shell & ephemeral enforcement completed
+- **Application Shell & Design Tokens** (`app/globals.css`, `app/(workspace)/workspace-shell.tsx`):
+  - Design tokens for evidence levels (E4 green, E3 blue, E2 amber, E1 grey, contradicted red) and dark mode.
+  - Responsive workspace shell (sidebar, tool switcher, conversation list, search, composer) down to 375px mobile viewport.
+- **The Four Turn Kinds** (`packages/ui/turns.tsx`):
+  - `TurnUser`: right-aligned, accent-tinted, plain.
+  - `TurnWorkspace`: left-aligned bordered card, "Workspace" label, no avatar.
+  - `TurnAssistantExternal`: left-aligned with provider badge, thin neutral rule, unverified indicator.
+  - `TurnSystemNote`: centred, small, muted.
+- **3-Layer Ephemeral Mode Enforcement** (`server/domain/conversation.ts`, `server/data/migrations/0002_phase2_conversations.sql`):
+  - Layer 1 (UI): skips payload body submission when ephemeral.
+  - Layer 2 (Service): `ConversationService.addMessage` strictly rejects body persistence on ephemeral conversations (`EphemeralBodyPersistenceError`).
+  - Layer 3 (Database): constraint `ephemeral_has_no_body` and SQL trigger `trg_enforce_ephemeral_no_body` preventing `body_enc` persistence.
+- **Sequential Message Ordering & Lifecycle** (`server/domain/conversation.ts`):
+  - Strict integer `seq` ordering (never timestamps).
+  - Archive, soft-delete with 30-day purge recovery window (`purgeAfter = now() + 30 days`), and restore.
+  - Conversation duplication with sequence number reset and title re-encryption.
+- **Client-Side Encrypted Conversation Search**:
+  - `searchClientSide`: decrypts titles in memory with user DEK and filters locally with zero search query transmission to the server.
+- **i18n Foundation & Pseudo-Localisation** (`packages/i18n/`):
+  - Parity-checked English and Korean ICU catalogues.
+  - Pseudo-localizer (`[!!! ... !!!]`) demonstrating that no raw/hardcoded strings slip past without localization.
+- **All Phase 2 Exit Criteria verified via test suite** (`npm test` — 51/51 tests passing):
+  1. Ephemeral bodies cannot be persisted by any of the 3 paths (UI, Service, DB trigger).
+  2. The pseudo-localisation build shows no raw strings.
+  3. Turn kinds verify WCAG accessibility roles and semantic distinction.
+  4. Usable at 375px responsive breakpoint.
+- **Integrated CI pipeline green**: `npm run ci` passes (`typecheck` + `lint` + `check:firewall` + `test` + `./scripts/check-docs.sh`).
+
+### Phase 1 authentication, crypto service & membership completed (Prior)
+- **Crypto Service** (`server/crypto/index.ts`):
+  - Per-user Data Encryption Keys (DEKs) wrapped under Master Key (AES-256-GCM).
+  - Additional Authenticated Data (AAD) binding to `{ userId, resourceId, purpose }`, structurally preventing ciphertext relocation.
+  - Blind index email HMAC hashing (`computeEmailHash`) for O(1) indexed lookups without plain email leak in DB dumps.
+  - Crypto-erase mechanism: zeroing/destroying user DEK renders all user ciphertexts permanently unrecoverable.
+- **Authentication & Sessions** (`server/auth/index.ts`, `server/auth/breach-screening.ts`):
+  - Salted scrypt password hashing with constant-time verification.
+  - Breached-password screening (SR-1.7) against local dataset with zero external network egress (SR-10.3 compliant).
+  - Opaque 32-byte session tokens with SHA-256 storage hashes.
+  - Privacy-preserving IP truncation (/24 for IPv4, /48 for IPv6) and generic UA family parsing.
+- **Single Entry-Point Authorization Module** (`server/authz/index.ts`):
+  - `authorize(actor, action, resource)` sweeps across conversation, message, verification, claim, and export resources.
+  - Strictly prevents IDOR across all user resources.
+  - Prohibits export of ephemeral conversations.
+  - Restricts admin settings and writes to administrative roles.
+- **Append-Only Audit Service** (`server/audit/index.ts`):
+  - Tamper-evident hash chain linking each event to the preceding record's SHA-256 hash.
+  - Chain verification accurately detects any deliberate modification or broken hash links.
+- **Membership & Entitlements** (`server/membership/index.ts`):
+  - Plan definitions (`free`, `member`, `pastor`) and entitlement evaluation logic.
+  - `BILLING_MODE=off` support for MVP pilot testing.
+- **Account Deletion & Export** (`server/domain/account.ts`):
+  - Ordered deletion: crypto-erases DEK first before row cleanup.
+  - Complete GDPR export assembling decrypted conversations and user profile.
+- **Schema Migration** (`server/data/migrations/0001_phase1_core_schema.sql`):
+  - Full DDL for Phase 1 identity, credentials, sessions, plans, memberships, and audit events.
+- **All Phase 1 Exit Criteria verified via test suite** (`npm test` — 34/34 tests passing):
+  1. Authorization sweep passes over all resource types.
+  2. Crypto round-trip passes; AAD mismatch rejects moved ciphertext; crypto-erase destroys readability.
+  3. Ordered account deletion destroys key first, and post-deletion decryption fails.
+  4. Export is complete for a seeded account.
+  5. Audit chain verifies; deliberate tamper is detected.
+- **Integrated CI pipeline green**: `npm run ci` passes (`typecheck` + `lint` + `check:firewall` + `test` + `./scripts/check-docs.sh`).
+
+### Phase 0 scaffolding & verification completed (Prior)
+- **Module boundaries established** (`app/`, `packages/`, `server/`, `data/`) per Component Architecture §1.
+- **Import boundary lint rules** enforced in `.eslintrc.json`.
+- **Cost Firewall implemented across layers** (SR-10.1 - SR-10.4).
+- **Structured logger & Privacy Canary** (`server/obs/logger.ts`, `server/obs/canary.ts`).
+- **Health probes & Security headers**: `/api/healthz`, `/api/readyz`, strict CSP and headers.
 Version 1.0 was reviewed adversarially over **six rounds** and revised. Five decisions were
 reversed and two exploitable gaps in the schema were closed. The full mapping of finding →
 decision → files is in
