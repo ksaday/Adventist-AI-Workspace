@@ -92,4 +92,12 @@ export class SourceBlockRefService {
     }
     return list;
   }
+
+  /**
+   * Returns all source block references across all users.
+   * Metadata only: used by the SR-D3 accretion tripwire.
+   */
+  async listAll(): Promise<SourceBlockRefRecord[]> {
+    return Array.from(this.records.values());
+  }
 }

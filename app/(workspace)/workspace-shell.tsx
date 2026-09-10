@@ -7,6 +7,7 @@ import { PrayerNote } from './prayer-note.js';
 import { SpiritualGuidanceWorkspace } from './spiritual-guidance.js';
 import { PastorsAidsWorkspace } from './pastors-aids.js';
 import { VerificationWorkbench } from './verification-workbench.js';
+import { AdminConsole } from './admin-console.js';
 
 export interface MessageItem {
   seq: number;
@@ -31,6 +32,7 @@ export function WorkspaceShell({
   const [inputText, setInputText] = useState('');
   const [activeTool, setActiveTool] = useState<'prayer' | 'guidance' | 'pastor' | 'verify'>(initialTool);
   const [ephemeralMode, setEphemeralMode] = useState(isEphemeral);
+  const [showAdminConsole, setShowAdminConsole] = useState(false);
 
   return (
     <div
@@ -175,7 +177,23 @@ export function WorkspaceShell({
           />
         </nav>
 
-        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <button
+            type="button"
+            onClick={() => setShowAdminConsole(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              padding: 0,
+              fontFamily: 'inherit',
+            }}
+          >
+            🛡️ {t('tool_admin_console', {}, { locale })}
+          </button>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             ⚙ {t('settings', {}, { locale })}
           </div>
@@ -318,6 +336,14 @@ export function WorkspaceShell({
           </>
         )}
       </main>
+
+      {showAdminConsole && (
+        <AdminConsole
+          actor={{ userId: 'usr-admin', role: 'admin', tier: 'pastor', totpEnabled: true }}
+          locale={locale}
+          onClose={() => setShowAdminConsole(false)}
+        />
+      )}
     </div>
   );
 }

@@ -9,11 +9,51 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 7 (Source Verification & Attestation) implemented and verified.** Verification conversations with bidirectional links and origin tombstones (SR-6.7); claim block parser with total-failure semantics and manual segmentation; claim ledger with mandatory pairing of status and evidence level chip; normative evidence state machine (`mayAssertOfficialVerification` using strict equality, `permittedStatuses`, `assertLegalStatusLevel`, `raise`); verifier output parser (`SDAWS-VERIFY-V1`) and merge engine with basis cross-checking against supplied source presence; attestation binding to pinned Source Directory revisions, WHATWG-canonicalized URL, strict host match, and directory path prefix (`starts_with` and `length > prefix.length`, bare prefix/search/sibling rejected, dot/%2e/backslash/empty escapes rejected); actor ownership invariant (`actor_id = user_id`); database migration `0004_phase7_evidence.sql` with CHECK constraints and `MATCH FULL` composite foreign key; Three-Column Honesty Contract in-product; and full 10-vector false-verification red-team suite. All Phase 7 exit criteria pass (158/158 tests green, `check-docs.sh` clean). Next is Phase 8 (Security hardening and administration).
+**Phase 8 (Security hardening and administration) implemented and verified.** Admin Console & Governance domain service (`AdminService`, `AdminConsole` UI with Overview, User Governance, Source Directory, Feature Flags, Audit Viewer, Accretion Tripwire, and Break-Glass Console); Break-Glass mechanism (`server/auth/break-glass.ts`) with re-auth (password + TOTP), mandatory stated reason, explicit target scope, time-bounded expiry, tamper-evident audit event, and unsuppressable notification email (Exit Criterion 2: offers zero suppression control); Mandatory TOTP for Admins (`server/auth/totp.ts`, SR-1.8) using RFC 6238, 30s step, 6 digits, ±1 step tolerance, 10 single-use recovery codes, 15-minute 2FA lockout on 5 failures, and 15-minute re-auth validity; Edge security headers and tightened nonce-only CSP (`server/security/headers.ts`, `next.config.mjs`); Sliding-window rate limiter (`server/security/rate-limiter.ts`) enforcing all Auth Design §7 quotas; Retention jobs (`server/jobs/retention.ts`) with clock fixtures and dry-run mode (Exit Criterion 3) handling hourly conversation purges, ordered account deletions with crypto-erase first, session expiries, and stale config alerts; SR-D3 Accretion Tripwire (`server/jobs/accretion-tripwire.ts`) aggregating metadata only across `source_block_ref` by `attributed_work_id` with 50,000-character alert threshold; and comprehensive security test suites across break-glass, TOTP, retention, accretion tripwire, SSRF, XSS, CSRF, IDOR, and egress-denial alerting (Exit Criterion 1). All Phase 8 exit criteria pass (219/219 tests green, `check-docs.sh` clean). Next is Phase 9 (Testing, evaluation, and content completion).
 
 ---
 
 ## What just happened
+
+### Phase 8 Security hardening and administration completed
+- **Admin Console & Governance Services** (`server/domain/admin.ts`, `app/(workspace)/admin-console.tsx`):
+  - Comprehensive admin service managing users, role assignments, suspensions, source directory entries/revisions, feature flags (`byok_enabled`, `captcha_enabled`, `maintenance_mode`, `registration_open`), emergency hotlines, system announcements, audit chain viewer, accretion reports, and break-glass execution.
+  - Interactive multi-tab Admin Console modal with role check, re-auth indicator, audit verification badge, and responsive styling.
+  - Wired into `app/(workspace)/workspace-shell.tsx` with role-based access and full English and Korean ICU translation parity (`packages/i18n/src/catalogues.ts`).
+- **Break-Glass Emergency Subsystem** (`server/auth/break-glass.ts`, PR-ADM-03, T-21):
+  - Elevates emergency inspection of member conversations only with administrative credentials, fresh re-authentication, mandatory stated reason (min 8 chars), explicit target scope (`conversationId` or `userId`), and time-bounded expiry (1-60 mins).
+  - Appends tamper-evident audit event (`break_glass_invoked`) with payload digest.
+  - **Exit Criterion 2 Enforced**: Dispatches unsuppressable email notification immediately to affected member and alert to system owner. Structurally offers **no suppression control** (zero suppression parameters, flags, or branches).
+  - Conversation content access barred to administrators normally; permitted strictly under active, non-expired, scope-matched break-glass grant.
+- **Mandatory TOTP for Admins** (`server/auth/totp.ts`, SR-1.8, Auth Design §5 & §8):
+  - Zero-dependency RFC 6238 TOTP engine with Base32 encoding/decoding, HMAC-SHA1 dynamic truncation, and ±1 step (90s window) clock drift tolerance.
+  - Generates 10 single-use recovery codes, hashed at rest.
+  - Enforces 15-minute 2FA lockout after 5 failed code attempts.
+  - Structural enforcement of SR-1.8: `assertAdminTotpEnrolled` and `canAssignAdminRole` strictly forbid granting or exercising the administrative role without active TOTP.
+  - Enforces 15-minute re-authentication window (`hasRecentReauth`) for administrative mutations and break-glass (PR-ADM-08).
+- **Security Headers & Tightened CSP** (`server/security/headers.ts`, `next.config.mjs`, Security Architecture §62):
+  - Full edge security headers: HSTS (`max-age=63072000; includeSubDomains; preload`), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`.
+  - Tightened CSP: removed `unsafe-inline` and `unsafe-eval`; enforces `script-src 'self'`, `style-src 'self'`, `connect-src 'self'`, `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'none'`.
+- **Rate Limiting Engine** (`server/security/rate-limiter.ts`, Auth Design §7):
+  - Sliding-window rate limiter with token bucket tracking and clock fixtures.
+  - Implements canonical limits: login (5/15m per IP+hash, 20/15m per IP), registration (3/hr per IP), password reset (3/hr per hash, 10/hr per IP), verification resend (3/hr per account), TOTP verify (5/15m per account), export (3/day), prompt generation (30/min fair use).
+- **Retention & Purge Scheduled Jobs** (`server/jobs/retention.ts`, Database Design §10, Retention §6):
+  - Supports clock fixtures (`Clock`) allowing deterministic time-travel testing (Exit Criterion 3).
+  - Supports dry-run mode (`dryRun: true`) logging planned counts to audit trail without mutating data.
+  - Hourly `purgeExpiredConversations`: hard-deletes soft-deleted conversations past `purge_after`.
+  - Hourly `finaliseAccountDeletions`: ordered deletion executing DEK crypto-erase first before row removal.
+  - 15-min `expireSessionsAndTokens`: purges expired session tokens and single-use reset tokens.
+  - Weekly `staleConfigCheck`: flags source directory and emergency entries exceeding 180-day review window.
+- **SR-D3 Accretion Tripwire Subsystem** (`server/jobs/accretion-tripwire.ts`, SR-D3, ADR-0022):
+  - Aggregates `char_count` from `source_block_ref` grouped by `attributed_work_id` across all users.
+  - Triggers administrative alert and security event when any catalogued work crosses 50,000 characters.
+  - **Zero Text Invariant**: Metadata-only aggregation; never touches or reports text bodies.
+- **All Phase 8 Exit Criteria verified via test suite** (`npm test` — 219/219 tests passing):
+  1. All security suites pass (break-glass, totp, retention, accretion tripwire, rate limiter, admin service, ssrf, xss, csrf, idor, egress alerting).
+  2. Break-glass sends the notification and offers no suppression control.
+  3. Retention jobs pass their clock-fixture tests.
+- **Integrated CI pipeline green**: `npm run ci` passes (`typecheck` + `lint` + `check:firewall` + `test` + `./scripts/check-docs.sh`).
+
 
 ### Phase 7 Source Verification & Attestation completed
 - **Source Directory Dataset & Service** (`data/source-directory/source-directory.v1.json`, `packages/evidence/src/directory.ts`, `server/domain/source-directory.ts`):

@@ -171,12 +171,16 @@ export class ConversationService {
   /**
    * Soft-delete a conversation with a 30-day purge recovery window.
    */
-  public softDelete(conversationId: string): void {
+  public softDelete(
+    conversationId: string,
+    options?: { deletedAt?: Date; purgeDays?: number }
+  ): void {
     const conv = this.conversations.get(conversationId);
     if (conv) {
-      const now = Date.now();
+      const now = options?.deletedAt ? options.deletedAt.getTime() : Date.now();
+      const purgeDays = options?.purgeDays ?? 30;
       conv.deletedAt = new Date(now).toISOString();
-      conv.purgeAfter = new Date(now + 30 * 24 * 60 * 60 * 1000).toISOString();
+      conv.purgeAfter = new Date(now + purgeDays * 24 * 60 * 60 * 1000).toISOString();
       conv.updatedAt = new Date(now).toISOString();
     }
   }
@@ -191,6 +195,20 @@ export class ConversationService {
       delete conv.purgeAfter;
       conv.updatedAt = new Date().toISOString();
     }
+  }
+
+  /**
+   * Lists all conversations stored in the service.
+   */
+  public listConversations(): StoredConversation[] {
+    return Array.from(this.conversations.values());
+  }
+
+  /**
+   * Hard-deletes a conversation permanently (used by retention purge jobs).
+   */
+  public hardDeleteConversation(conversationId: string): boolean {
+    return this.conversations.delete(conversationId);
   }
 
   /**
