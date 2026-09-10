@@ -7,6 +7,8 @@
     { "term": "end my life", "category": "self_harm", "severity": 3 },
     { "term": "want to die", "category": "self_harm", "severity": 2 },
     { "term": "overdose", "category": "medical_emergency", "severity": 3 },
+    { "term": "ending it all", "category": "self_harm", "severity": 3 },
+    { "term": "end it all", "category": "self_harm", "severity": 3 },
     { "term": "domestic violence", "category": "abuse", "severity": 3 }
   ]
 }

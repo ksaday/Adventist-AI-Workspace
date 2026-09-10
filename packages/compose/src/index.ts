@@ -26,6 +26,7 @@ export interface ComposeInput {
   sourceBlocks: SourceBlock[];
   contentLocale: string; // 'en' | 'ko'
   seed?: string; // Optional seed for deterministic test pinning
+  taskBody?: string; // Optional specific task body override
 }
 
 export interface ComposedSection {
@@ -151,7 +152,9 @@ export function compose(input: ComposeInput): ComposeOutput {
   }
 
   // 5. Task and Parameters
-  const taskText = `TASK:\nApp: ${input.app.toUpperCase()}\nParameters: ${JSON.stringify(input.parameters)}`;
+  const taskText = input.taskBody
+    ? `TASK:\n${input.taskBody}`
+    : `TASK:\nApp: ${input.app.toUpperCase()}\nParameters: ${JSON.stringify(input.parameters)}`;
   parts.push(taskText);
   sections.push({
     title: 'Task Parameters',

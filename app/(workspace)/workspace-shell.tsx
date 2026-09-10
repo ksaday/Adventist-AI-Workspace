@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { t, type SupportedLocale } from '../../packages/i18n/src/index.js';
 import { TurnUser, TurnWorkspace, TurnAssistantExternal, TurnSystemNote } from '../../packages/ui/turns.js';
+import { PrayerNote } from './prayer-note.js';
 
 export interface MessageItem {
   seq: number;
@@ -16,13 +17,16 @@ export function WorkspaceShell({
   initialMessages = [],
   locale = 'en',
   isEphemeral = false,
+  initialTool = 'guidance',
 }: {
   initialMessages?: MessageItem[];
   locale?: SupportedLocale;
   isEphemeral?: boolean;
+  initialTool?: 'prayer' | 'guidance' | 'pastor';
 }) {
   const [messages] = useState<MessageItem[]>(initialMessages);
   const [inputText, setInputText] = useState('');
+  const [activeTool, setActiveTool] = useState<'prayer' | 'guidance' | 'pastor'>(initialTool);
   const [ephemeralMode, setEphemeralMode] = useState(isEphemeral);
 
   return (
@@ -73,19 +77,61 @@ export function WorkspaceShell({
           </div>
           <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
             <li style={{ padding: '0.4rem 0' }}>
-              <a href="#prayer" style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
-                ○ {t('tool_prayer_note', {}, { locale })}
-              </a>
+              <button
+                type="button"
+                onClick={() => setActiveTool('prayer')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: activeTool === 'prayer' ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  fontWeight: activeTool === 'prayer' ? 700 : 400,
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  textAlign: 'left',
+                }}
+              >
+                {activeTool === 'prayer' ? '●' : '○'} {t('tool_prayer_note', {}, { locale })}
+              </button>
             </li>
             <li style={{ padding: '0.4rem 0' }}>
-              <a href="#guidance" style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
-                ● {t('tool_spiritual_guidance', {}, { locale })}
-              </a>
+              <button
+                type="button"
+                onClick={() => setActiveTool('guidance')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: activeTool === 'guidance' ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  fontWeight: activeTool === 'guidance' ? 700 : 400,
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  textAlign: 'left',
+                }}
+              >
+                {activeTool === 'guidance' ? '●' : '○'} {t('tool_spiritual_guidance', {}, { locale })}
+              </button>
             </li>
             <li style={{ padding: '0.4rem 0' }}>
-              <a href="#pastor" style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
+              <button
+                type="button"
+                onClick={() => setActiveTool('pastor')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: activeTool === 'pastor' ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  fontWeight: activeTool === 'pastor' ? 700 : 400,
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  textAlign: 'left',
+                }}
+              >
                 ○ {t('tool_pastor_aids', {}, { locale })} <span title="Pastor tier">ᴾ</span>
-              </a>
+              </button>
             </li>
           </ul>
 
@@ -127,111 +173,117 @@ export function WorkspaceShell({
           boxSizing: 'border-box',
         }}
       >
-        {/* Timeline Header */}
-        <header
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderBottom: '1px solid var(--border-color)',
-            paddingBottom: '0.75rem',
-            marginBottom: '1rem',
-          }}
-        >
-          <h2 style={{ fontSize: '1.2rem', margin: 0 }}>
-            {t('tool_spiritual_guidance', {}, { locale })}
-          </h2>
-          <span
-            style={{
-              fontSize: '0.8rem',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              backgroundColor: ephemeralMode ? 'var(--evidence-e3-bg)' : 'var(--border-color)',
-              color: ephemeralMode ? 'var(--evidence-e3-blue)' : 'var(--text-secondary)',
-            }}
-          >
-            {ephemeralMode ? t('mode_ephemeral', {}, { locale }) : t('mode_standard', {}, { locale })}
-          </span>
-        </header>
+        {activeTool === 'prayer' ? (
+          <PrayerNote locale={locale} />
+        ) : (
+          <>
+            {/* Timeline Header */}
+            <header
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderBottom: '1px solid var(--border-color)',
+                paddingBottom: '0.75rem',
+                marginBottom: '1rem',
+              }}
+            >
+              <h2 style={{ fontSize: '1.2rem', margin: 0 }}>
+                {t('tool_spiritual_guidance', {}, { locale })}
+              </h2>
+              <span
+                style={{
+                  fontSize: '0.8rem',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  backgroundColor: ephemeralMode ? 'var(--evidence-e3-bg)' : 'var(--border-color)',
+                  color: ephemeralMode ? 'var(--evidence-e3-blue)' : 'var(--text-secondary)',
+                }}
+              >
+                {ephemeralMode ? t('mode_ephemeral', {}, { locale }) : t('mode_standard', {}, { locale })}
+              </span>
+            </header>
 
-        {/* Conversation Timeline */}
-        <section aria-label="Conversation timeline" style={{ flex: 1, overflowY: 'auto' }}>
-          {messages.map(msg => {
-            if (msg.role === 'user') {
-              return <TurnUser key={msg.seq} seq={msg.seq} content={msg.content} />;
-            }
-            if (msg.role === 'workspace') {
-              return <TurnWorkspace key={msg.seq} seq={msg.seq} content={msg.content} />;
-            }
-            if (msg.role === 'assistant_external') {
-              return (
-                <TurnAssistantExternal
-                  key={msg.seq}
-                  seq={msg.seq}
-                  content={msg.content}
-                  provider={msg.provider ?? 'chatgpt'}
-                  isVerified={msg.isVerified}
+            {/* Conversation Timeline */}
+            <section aria-label="Conversation timeline" style={{ flex: 1, overflowY: 'auto' }}>
+              {messages.map(msg => {
+                if (msg.role === 'user') {
+                  return <TurnUser key={msg.seq} seq={msg.seq} content={msg.content} />;
+                }
+                if (msg.role === 'workspace') {
+                  return <TurnWorkspace key={msg.seq} seq={msg.seq} content={msg.content} />;
+                }
+                if (msg.role === 'assistant_external') {
+                  return (
+                    <TurnAssistantExternal
+                      key={msg.seq}
+                      seq={msg.seq}
+                      content={msg.content}
+                      provider={msg.provider ?? 'chatgpt'}
+                      isVerified={msg.isVerified}
+                    />
+                  );
+                }
+                return <TurnSystemNote key={msg.seq} seq={msg.seq} content={msg.content} />;
+              })}
+            </section>
+
+            {/* Composer Footer */}
+            <footer style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <textarea
+                  aria-label="Ask about anything"
+                  rows={3}
+                  value={inputText}
+                  onChange={e => setInputText(e.target.value)}
+                  placeholder={t('ask_placeholder', {}, { locale })}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    resize: 'none',
+                    fontFamily: 'inherit',
+                  }}
                 />
-              );
-            }
-            return <TurnSystemNote key={msg.seq} seq={msg.seq} content={msg.content} />;
-          })}
-        </section>
+                <button
+                  type="button"
+                  style={{
+                    alignSelf: 'flex-end',
+                    padding: '0.75rem 1.25rem',
+                    backgroundColor: 'var(--accent-primary)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  {t('compose_button', {}, { locale })}
+                </button>
+              </div>
 
-        {/* Composer Footer */}
-        <footer style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <textarea
-              aria-label="Ask about anything"
-              rows={3}
-              value={inputText}
-              onChange={e => setInputText(e.target.value)}
-              placeholder={t('ask_placeholder', {}, { locale })}
-              style={{
-                flex: 1,
-                padding: '0.75rem',
-                borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                resize: 'none',
-                fontFamily: 'inherit',
-              }}
-            />
-            <button
-              type="button"
-              style={{
-                alignSelf: 'flex-end',
-                padding: '0.75rem 1.25rem',
-                backgroundColor: 'var(--accent-primary)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
-            >
-              {t('compose_button', {}, { locale })}
-            </button>
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: '0.8rem',
-              color: 'var(--text-secondary)',
-              marginTop: '0.5rem',
-            }}
-          >
-            <span>🌐 {t('language_indicator', { locale: locale.toUpperCase() }, { locale })}</span>
-            <button
-              type="button"
-              onClick={() => setEphemeralMode(!ephemeralMode)}
-              style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}
-            >
-              ⚑ {ephemeralMode ? t('mode_ephemeral', {}, { locale }) : t('make_ephemeral', {}, { locale })}
-            </button>
-          </div>
-        </footer>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '0.8rem',
+                  color: 'var(--text-secondary)',
+                  marginTop: '0.5rem',
+                }}
+              >
+                <span>🌐 {t('language_indicator', { locale: locale.toUpperCase() }, { locale })}</span>
+                <button
+                  type="button"
+                  onClick={() => setEphemeralMode(!ephemeralMode)}
+                  style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}
+                >
+                  ⚑ {ephemeralMode ? t('mode_ephemeral', {}, { locale }) : t('make_ephemeral', {}, { locale })}
+                </button>
+              </div>
+            </footer>
+          </>
+        )}
       </main>
     </div>
   );

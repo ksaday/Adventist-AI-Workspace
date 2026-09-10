@@ -9,13 +9,47 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 3 (Prompt orchestration and citation validation) implemented and verified.** Reference data assets (Bible canon index EN/KO, EGW bibliographic catalogue with zero text bodies, topical scripture, risk lexicon EN/KO, emergency directory), deterministic nonce-delimited prompt composer, Bible reference detection & validation, Invariant 5 compareVerbatim (strictly UNAVAILABLE), EGW citation normalization & page plausibility with non-destructive fuzzy suggestion, claim parser (`SDAWS-CLAIMS-V1`), language detector, provider launcher with clipboard-first semantics & prefill caps, and client-side safety screener implemented. All Phase 3 exit criteria pass (73/73 tests green, `check-docs.sh` clean). Next is Phase 4 (P2 Prayer Note).
+**Phase 4 (P2 Prayer Note) implemented and verified.** The deterministic prayer skeleton (zero external AI, pure client-side drafting), Lord's Prayer & ACTS-compatible structural frame with reordering and free-form mode, Matthew 6:7 theological anti-formalism warning, curated topical scripture anchors (references only), intercessory third-party privacy check (PR-P2-10 with initials conversion), crisis safety screening with emergency hotline routing (988/109), anonymous drafting path (Q-12, C-04), P2 prompt composer (`p2.prayer.compose`), interactive UI component (`app/(workspace)/prayer-note.tsx`), and documented pastoral advisory review record (`docs/90-decisions/95-pastoral-review-record-p2.md`) implemented. All Phase 4 exit criteria pass (88/88 tests green, `check-docs.sh` clean). Next is Phase 5 (P3 Spiritual Guidance).
 
 ---
 
 ## What just happened
 
-### Phase 3 Prompt orchestration and citation validation completed
+### Phase 4 P2 Prayer Note completed
+- **The Deterministic Prayer Skeleton** (`packages/prayer/src/skeleton.ts`):
+  - Pure client-side prayer draft assembler: generates a heartfelt, personal, ready-to-pray draft from the member's own words and curated Scripture anchors with **zero external AI model and zero server transmission**.
+  - Dual-language support (English and Korean).
+  - Free-form mode respects raw burdens without imposing structural divisions (Romans 8:26).
+  - Explicit non-AI watermark notice on generated drafts.
+- **Structural Frame & Pastoral Framing** (`packages/prayer/src/frame.ts`):
+  - 8 components anchored in the Lord's Prayer (Matthew 6:9-13) and compatible with ACTS: Address, Praise, Thanksgiving, Confession, Petition, Intercession, Submission, Closing.
+  - Fully toggleable and reorderable.
+  - Explicit theological disclaimer citing Matthew 6:7: prayer is personal communion, not a formula or repetitive technique.
+- **Curated Scripture Anchors** (`packages/prayer/src/anchors.ts`, `data/topical/topical-scripture.v1.json`):
+  - 11 curated topics with keyword-matched anchor passages (anxiety, guidance, forgiveness, thanksgiving, intercession/healing, family, etc.).
+  - **Invariant 5 / ADR-0021 compliant**: provides canonical references only with one-sentence relevance explanations; zero verse text bundled.
+- **Privacy & Pre-Intake Safety Screening** (`packages/prayer/src/privacy.ts`):
+  - Intercessory third-party privacy check (PR-P2-10): detects named individuals and offers initials-only entry (e.g. "J.D.") to protect third-party privacy.
+  - Pre-intake safety screening: detects acute personal crisis burdens, displays 24/7 crisis hotlines (988/109), and blocks prompt generation.
+  - Ephemeral mode is the default and explicitly explained in the UI (PR-P2-08).
+- **Anonymous Drafting Path** (Q-12, C-04):
+  - Local drafting path accessible without requiring an authenticated user account, lowering barriers for initial devotional use.
+- **Prompt Composer Integration** (`packages/prayer/src/composer.ts`):
+  - Implements template `p2.prayer.compose` per Template Library §4.2.
+  - Passes user burden within nonce-delimited blocks with injection protection and `SDAWS-CLAIMS-V1` output contract.
+- **Interactive UI Surface** (`app/(workspace)/prayer-note.tsx`, `app/(workspace)/workspace-shell.tsx`):
+  - Implements the complete UX §6.1 specification.
+  - Two equal-weight exits: "Draft a prayer here" (local deterministic draft) vs "Prepare a prompt →" (external AI prompt).
+  - Responsive down to 375px mobile viewport.
+- **Pastoral Advisory Review Record** (`docs/90-decisions/95-pastoral-review-record-p2.md`):
+  - Formally documents and signs off on the P2 frame, component terminology, Matthew 6:7 warning, and Scripture anchors per PR-P2-04 and Q-21.
+- **All Phase 4 Exit Criteria verified via test suite** (`npm test` — 88/88 tests passing):
+  1. A member reaches a usable prayer draft with NO external AI.
+  2. Pastoral advisory review of the frame, help text, and anchors is signed off and recorded.
+  3. Ephemeral is the default and is explained, not silent.
+- **Integrated CI pipeline green**: `npm run ci` passes (`typecheck` + `lint` + `check:firewall` + `test` + `./scripts/check-docs.sh`).
+
+### Phase 3 Prompt orchestration and citation validation completed (Prior)
 - **Reference Data Assets Built and Version-Pinned** (`data/`):
   - `data/canon/bible-canon.v1.json`: Protestant 66-book canon with English & Korean names, abbreviations, and chapter/verse boundaries.
   - `data/egw-catalogue/egw-works.v1.json`: Bibliographic metadata for core Ellen G. White works (publication year, page count, official URL template, abbreviations, Korean titles) holding zero text bodies (Invariant 1, ADR-0002, ADR-0022).

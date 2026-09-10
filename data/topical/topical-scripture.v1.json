@@ -1,35 +1,83 @@
 {
   "version": "1.0",
+  "notice": "Curated topical Scripture index containing Bible references only. Holds zero bundled verse text and zero EGW text (Invariant 1, Invariant 5, ADR-0021, PR-P2-07).",
   "topics": [
     {
       "id": "sabbath",
       "titleEn": "Sabbath",
       "titleKo": "안식일",
-      "anchorPassages": ["GEN.2.1-GEN.2.3", "EXO.20.8-EXO.20.11", "ISA.58.13-ISA.58.14", "MRK.2.27-MRK.2.28"]
+      "anchorPassages": ["GEN.2.1-GEN.2.3", "EXO.20.8-EXO.20.11", "ISA.58.13-ISA.58.14", "MRK.2.27-MRK.2.28"],
+      "keywords": ["sabbath", "rest", "creation", "holy day", "안식일", "휴식", "창조"]
     },
     {
       "id": "salvation_grace",
       "titleEn": "Salvation by Grace through Faith",
       "titleKo": "믿음으로 말미암는 은혜의 구원",
-      "anchorPassages": ["EPH.2.8-EPH.2.10", "ROM.3.23-ROM.3.26", "ROM.5.1-ROM.5.2", "TIT.3.5"]
+      "anchorPassages": ["EPH.2.8-EPH.2.10", "ROM.3.23-ROM.3.26", "ROM.5.1-ROM.5.2", "TIT.3.5"],
+      "keywords": ["grace", "faith", "salvation", "cross", "mercy", "은혜", "구원", "믿음", "십자가"]
     },
     {
       "id": "comfort_peace",
       "titleEn": "Comfort in Trial and Sorrow",
       "titleKo": "시련과 슬픔 중의 위로",
-      "anchorPassages": ["PSA.23.1-PSA.23.6", "PSA.46.1", "JHN.14.1-JHN.14.3", "PHP.4.6-PHP.4.7"]
+      "anchorPassages": ["PSA.23.1-PSA.23.6", "PSA.46.1", "JHN.14.1-JHN.14.3", "PHP.4.6-PHP.4.7"],
+      "keywords": ["comfort", "peace", "sorrow", "grief", "trial", "loss", "pain", "위로", "평안", "슬픔", "상실", "고통"]
     },
     {
       "id": "second_advent",
       "titleEn": "The Second Coming of Christ",
       "titleKo": "그리스도의 재림",
-      "anchorPassages": ["1TH.4.16-1TH.4.18", "REV.1.7", "REV.22.20", "ACT.1.11"]
+      "anchorPassages": ["1TH.4.16-1TH.4.18", "REV.1.7", "REV.22.20", "ACT.1.11"],
+      "keywords": ["second coming", "advent", "hope", "resurrection", "clouds", "재림", "소망", "부활"]
     },
     {
       "id": "sanctuary",
       "titleEn": "The Sanctuary and Heavenly Ministry",
       "titleKo": "성소와 하늘 봉사",
-      "anchorPassages": ["HEB.8.1-HEB.8.2", "HEB.9.11-HEB.9.12", "DAN.8.14", "LEV.16.29-LEV.16.34"]
+      "anchorPassages": ["HEB.8.1-HEB.8.2", "HEB.9.11-HEB.9.12", "DAN.8.14", "LEV.16.29-LEV.16.34"],
+      "keywords": ["sanctuary", "high priest", "cleansing", "intercession", "성소", "대제사장", "중보"]
+    },
+    {
+      "id": "anxiety_burden",
+      "titleEn": "Casting Anxieties & Heavy Burdens",
+      "titleKo": "염려와 무거운 짐을 맡김",
+      "anchorPassages": ["1PE.5.7", "MAT.11.28-MAT.11.30", "PHP.4.6-PHP.4.7", "PSA.55.22"],
+      "keywords": ["anxiety", "worry", "fear", "burden", "heavy", "troubled", "stress", "exhausted", "염려", "걱정", "불안", "두려움", "짐", "스트레스", "지침"]
+    },
+    {
+      "id": "guidance_wisdom",
+      "titleEn": "Guidance and Divine Wisdom",
+      "titleKo": "하나님의 인도하심과 지혜",
+      "anchorPassages": ["PRO.3.5-PRO.3.6", "JAS.1.5", "PSA.32.8", "ISA.30.21"],
+      "keywords": ["guidance", "wisdom", "direction", "decision", "path", "lead", "choice", "인도", "지혜", "길", "선택", "결정"]
+    },
+    {
+      "id": "forgiveness_repentance",
+      "titleEn": "Confession, Repentance and Forgiveness",
+      "titleKo": "자복과 회개, 죄 사함",
+      "anchorPassages": ["1JN.1.9", "PSA.51.10", "ISA.1.18", "MAT.6.12"],
+      "keywords": ["confession", "forgiveness", "repentance", "sin", "guilt", "clean heart", "회개", "용서", "고백", "죄", "정결"]
+    },
+    {
+      "id": "thanksgiving_praise",
+      "titleEn": "Thanksgiving and Grateful Praise",
+      "titleKo": "감사와 찬양",
+      "anchorPassages": ["PSA.100.4-PSA.100.5", "PSA.103.1-PSA.103.5", "1TH.5.16-1TH.5.18", "COL.3.17"],
+      "keywords": ["thanks", "thanksgiving", "gratitude", "praise", "bless", "joy", "감사", "찬양", "은혜", "기쁨"]
+    },
+    {
+      "id": "intercession_healing",
+      "titleEn": "Intercession for Others and Healing",
+      "titleKo": "이웃을 위한 중보와 치유",
+      "anchorPassages": ["1TI.2.1-1TI.2.2", "JAS.5.16", "JER.17.14", "3JN.1.2"],
+      "keywords": ["intercession", "healing", "sick", "pray for", "illness", "recovery", "neighbor", "중보", "치유", "회복", "이웃", "질병", "아픔"]
+    },
+    {
+      "id": "family_children",
+      "titleEn": "Family, Children and Generations",
+      "titleKo": "가정과 자녀, 세대를 위한 기도",
+      "anchorPassages": ["JOS.24.15", "PRO.22.6", "ISA.49.25", "EPH.6.4"],
+      "keywords": ["family", "son", "daughter", "child", "children", "parents", "home", "generation", "가정", "자녀", "아들", "딸", "부모", "아이"]
     }
   ]
 }
