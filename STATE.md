@@ -9,13 +9,49 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 4 (P2 Prayer Note) implemented and verified.** The deterministic prayer skeleton (zero external AI, pure client-side drafting), Lord's Prayer & ACTS-compatible structural frame with reordering and free-form mode, Matthew 6:7 theological anti-formalism warning, curated topical scripture anchors (references only), intercessory third-party privacy check (PR-P2-10 with initials conversion), crisis safety screening with emergency hotline routing (988/109), anonymous drafting path (Q-12, C-04), P2 prompt composer (`p2.prayer.compose`), interactive UI component (`app/(workspace)/prayer-note.tsx`), and documented pastoral advisory review record (`docs/90-decisions/95-pastoral-review-record-p2.md`) implemented. All Phase 4 exit criteria pass (88/88 tests green, `check-docs.sh` clean). Next is Phase 5 (P3 Spiritual Guidance).
+**Phase 5 (P3 Spiritual Guidance) implemented and verified.** Question intake with optional source attachment panel (pasted text, Bible reference, EGW citation, URL), source caps (8,000 char per block, 40,000 char per conversation), browser-side `client_commitment` marker (SR-D2, Invariant 4), `source_block_ref` metadata schema and server domain service, automatic source-bounded mode with visible badge (`⛨ Source-bounded`), denominational sensitivity detection for all 12 sensitive doctrinal topics with pastoral referral clause (PR-P3-06), persistent non-professional disclaimer (PR-P3-07), pre-transmission safety screening (PR-P3-08), P3 prompt composers (`p3.guidance.standard`, `p3.guidance.source_bounded`), and interactive Five-Band answer parser & viewer with Band 5 never minimised (PR-P3-05). All Phase 5 exit criteria pass (106/106 tests green, `check-docs.sh` clean). Next is Phase 6 (P4 Pastor's Aids).
 
 ---
 
 ## What just happened
 
-### Phase 4 P2 Prayer Note completed
+### Phase 5 P3 Spiritual Guidance completed
+- **Domain Models & Source Block Caps** (`packages/guidance/src/types.ts`, `packages/guidance/src/caps.ts`):
+  - Strict enforcement of per-block cap (8,000 characters) and per-conversation cap (40,000 characters) client-side and server-side (SR-D2 / AC-E3).
+  - Browser-side `client_commitment` marker derivation over random 32-byte salt and normalised text; salt and body stay in the browser.
+  - Structural separation: `toSourceBlockRefRecord` extracts metadata only; zero text body or salt is ever included or transmitted to our server (SR-D1 / ADR-0022).
+- **Denominational Sensitivity Engine** (`packages/guidance/src/sensitivity.ts`):
+  - Detects all 12 sensitive Adventist doctrinal/pastoral topics (Sabbath, sanctuary, state of the dead, spirit of prophecy, health message, last-day events, standards & lifestyle, investigative judgement, creation, tithe, marriage/divorce/remarriage, women's ordination) across English and Korean lexicons.
+  - Automatically generates the denominational sensitivity clause requiring accurate presentation of church positions, separation of official teaching from opinion, and explicit referral of personal circumstances to the local pastor (PR-P3-06 / Template Library §5.1).
+- **Prompt Composer for P3** (`packages/guidance/src/composer.ts`):
+  - Implements `p3.guidance.standard` and `p3.guidance.source_bounded` matching Template Library §5.
+  - Automatically switches to source-bounded mode when any source block is attached (PR-P3-04).
+  - Enforces five labelled bands: Band 1 (What you have told me), Band 2 (Scripture), Band 3 (Ellen G. White), Band 4 (Reflection), Band 5 (What remains uncertain).
+  - Injects pre-intake crisis pastoral safety notice when acute personal distress is flagged (PR-P3-08).
+  - Strict delimiter collision prevention with re-derivable nonces.
+  - Ends with `SDAWS-CLAIMS-V1` machine-readable output contract.
+- **Structured Five-Band Answer Parser** (`packages/guidance/src/bands.ts`):
+  - Segments external AI replies into the 5 structured bands across English and Korean headers.
+  - Flags `missingBand5: true` if Band 5 is omitted or empty, honoring PR-P3-05 ("Band 5 is required. If you believe nothing is uncertain, you have not looked hard enough.").
+  - Extracts and parses `SDAWS-CLAIMS-V1` code fence into structured claim records.
+- **Server Schema Migration & Metadata Service** (`server/data/migrations/0003_phase5_source_blocks.sql`, `server/domain/source-block.ts`):
+  - DDL for `source_block_ref` per Database Design §5 & §8 (id, conversation_id, user_id, kind, char_count <= 8000, attributed_work_id, client_commitment, session_id). Zero text columns.
+  - `SourceBlockRefService` enforces ownership and block/conversation character limits.
+- **Interactive UI & Workspace Integration** (`app/(workspace)/spiritual-guidance.tsx`, `app/(workspace)/workspace-shell.tsx`):
+  - Question intake with live character counter and safety screener.
+  - Persistent, unobtrusive non-professional disclaimer (PR-P3-07).
+  - Collapsible source attachment panel with live Bible canon validation and EGW catalogue validation.
+  - Verbatim paste target disclaimer from UX §6.2.
+  - Visible `⛨ Source-bounded` mode indicator when sources are present.
+  - Five-band answer viewer rendering each band distinctly, with Band 5 given equal visual weight and never collapsed by default.
+  - Dual action exits: "Prepare a prompt →" (copies to clipboard) and "Paste AI answer" (inspects/segments bands).
+- **All Phase 5 Exit Criteria verified via test suite** (`npm test` — 106/106 tests passing):
+  1. Attaching a source switches modes visibly (`⛨ Source-bounded`).
+  2. Source caps are enforced at both the block (8,000) and conversation (40,000) level.
+  3. The five bands render distinctly; band 5 is never collapsed by default.
+- **Integrated CI pipeline green**: `npm run ci` passes (`typecheck` + `lint` + `check:firewall` + `test` + `./scripts/check-docs.sh`).
+
+### Phase 4 P2 Prayer Note completed (Prior)
 - **The Deterministic Prayer Skeleton** (`packages/prayer/src/skeleton.ts`):
   - Pure client-side prayer draft assembler: generates a heartfelt, personal, ready-to-pray draft from the member's own words and curated Scripture anchors with **zero external AI model and zero server transmission**.
   - Dual-language support (English and Korean).

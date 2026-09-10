@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { t, type SupportedLocale } from '../../packages/i18n/src/index.js';
 import { TurnUser, TurnWorkspace, TurnAssistantExternal, TurnSystemNote } from '../../packages/ui/turns.js';
 import { PrayerNote } from './prayer-note.js';
+import { SpiritualGuidanceWorkspace } from './spiritual-guidance.js';
 
 export interface MessageItem {
   seq: number;
@@ -175,6 +176,8 @@ export function WorkspaceShell({
       >
         {activeTool === 'prayer' ? (
           <PrayerNote locale={locale} />
+        ) : activeTool === 'guidance' ? (
+          <SpiritualGuidanceWorkspace />
         ) : (
           <>
             {/* Timeline Header */}
