@@ -53,6 +53,18 @@ export const CATALOGUES = {
     p3_band5_required_warning: 'Band 5 is required. If nothing is uncertain, the reflection is incomplete.',
     p3_denominational_clause_badge: 'Denominational Topic Detected',
     p3_pastor_referral: 'For pastoral rulings on your particular circumstances, consult your local pastor.',
+    p4_title: "Pastor's Aids",
+    p4_disclaimer: 'These parameters shape form and intent only. They are not sources of truth and never change what Scripture or Ellen G. White actually says.',
+    p4_task_label: 'Ministry & Homiletic Task',
+    p4_topic_label: 'Sermon Topic or Passage Theme',
+    p4_anchor_label: 'Anchor Passage',
+    p4_egw_leads_note: 'EGW Leads only: gives work and chapter leads to study in the official library, never text.',
+    p4_checklist_title: 'Pre-Pulpit Citation Checklist',
+    p4_checklist_blocking_warning: 'citations need confirmation before this outline can be marked ready to preach.',
+    p4_mark_ready: 'Mark Ready to Preach',
+    p4_ready_badge: '✓ Ready to Preach',
+    p4_export_btn: 'Export Outline',
+    p4_pastor_tier_locked: "Pastor Tier Required: Pastor's Aids features require the Pastor & Ministry entitlement tier.",
   },
   ko: {
     app_title: '재림교회 AI 워크스페이스',
@@ -103,8 +115,21 @@ export const CATALOGUES = {
     p3_band5_required_warning: '5번 영역(여전히 확실하지 않은 것)은 필수 항목입니다. 불확실한 점이 없다면 성찰이 불완전한 것입니다.',
     p3_denominational_clause_badge: '교단 주요 교리 관련 주제 감지됨',
     p3_pastor_referral: '개인의 구체적인 상황에 대한 목회적 지도는 출석 교회의 담임목사님과 상담하십시오.',
+    p4_title: '목회자 지원',
+    p4_disclaimer: '이 설정 항목들은 설교와 연구의 형식과 의도만을 구체화합니다. 결코 성경이나 엘렌 G. 화잇이 실제로 기록한 진리를 변경하지 않습니다.',
+    p4_task_label: '사역 및 설교 과업',
+    p4_topic_label: '설교 주제 또는 본문 테마',
+    p4_anchor_label: '핵심 본문',
+    p4_egw_leads_note: '화잇 저작 안내 전용: 공식 도서관에서 연구할 저작명과 장 안내만 제공하며 원문은 생성하지 않습니다.',
+    p4_checklist_title: '강단 선포 전 인용 검증 체크리스트',
+    p4_checklist_blocking_warning: '개의 인용이 확인되어야 설교 준비 완료로 표시할 수 있습니다.',
+    p4_mark_ready: '설교 준비 완료',
+    p4_ready_badge: '✓ 설교 준비 완료됨',
+    p4_export_btn: '설교문 내보내기',
+    p4_pastor_tier_locked: '목회자 전용 기능: 목회자 지원 도구를 사용하려면 목회자 플랜 구독이 필요합니다.',
   },
 } as const;
+
 
 export type TranslationKey = keyof typeof CATALOGUES.en;
 

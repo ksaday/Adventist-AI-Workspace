@@ -9,13 +9,46 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 5 (P3 Spiritual Guidance) implemented and verified.** Question intake with optional source attachment panel (pasted text, Bible reference, EGW citation, URL), source caps (8,000 char per block, 40,000 char per conversation), browser-side `client_commitment` marker (SR-D2, Invariant 4), `source_block_ref` metadata schema and server domain service, automatic source-bounded mode with visible badge (`⛨ Source-bounded`), denominational sensitivity detection for all 12 sensitive doctrinal topics with pastoral referral clause (PR-P3-06), persistent non-professional disclaimer (PR-P3-07), pre-transmission safety screening (PR-P3-08), P3 prompt composers (`p3.guidance.standard`, `p3.guidance.source_bounded`), and interactive Five-Band answer parser & viewer with Band 5 never minimised (PR-P3-05). All Phase 5 exit criteria pass (106/106 tests green, `check-docs.sh` clean). Next is Phase 6 (P4 Pastor's Aids).
+**Phase 6 (P4 Pastor's Aids) implemented and verified.** The parameter panel with live anchor-passage validation against the canon index (PR-P4-03, PR-P4-04), all 12 homiletic & study task types with their prompt templates (PR-P4-02), strict EGW leads mode (PR-P4-05: leads only to study, never text), structured editable outline workspace (PR-P4-06: title, thesis, points, sub-points, illustration placeholders, appeal), multi-format outline export to Markdown, plain text, and print-friendly HTML with evidence levels and E4 confirming metadata (PR-P4-07), pre-pulpit Citation Checklist strictly blocking "Mark Ready" while any citation marked for verbatim quotation sits below E4 (PR-P4-09, Invariant 3 / ADR-0019), pastor tier entitlement gating (Membership §3.2), and verified zero file-upload capability (PR-P4-01). All Phase 6 exit criteria pass (121/121 tests green, `check-docs.sh` clean). Next is Phase 7 (Source Verification & Attestation).
 
 ---
 
 ## What just happened
 
-### Phase 5 P3 Spiritual Guidance completed
+### Phase 6 P4 Pastor's Aids completed
+- **Parameter Panel & Live Validation** (`packages/pastor/src/types.ts`, `app/(workspace)/pastors-aids.tsx`):
+  - 13 controllable homiletic parameters: topic, anchor passage, occasion, audience, duration (15-60 min), point count (1-5), homiletic form (expository/textual/topical/narrative), tone, depth, Bible emphasis (1-5), EGW emphasis (none/light/moderate), outline format, and preferred translation (PR-P4-03).
+  - Live Protestant 66-book canon validation on the anchor-passage field before any AI prompt is generated (UX §6.3).
+  - Explicit theological disclaimer (PR-P4-04): parameters shape form and intent only and never change what Scripture or Ellen G. White actually says.
+- **12 Homiletic & Study Task Types** (`packages/pastor/src/composer.ts`):
+  - Implements templates for all 12 tasks per PR-P4-02 & Template Library §6: `sermon_outline` (`p4.sermon.outline`), `sermon_topic_explore`, `bible_passage_discover`, `egw_reference_discovery` (`p4.egw.leads`), `sermon_points`, `biblestudy_outline`, `devotional_outline`, `discussion_questions`, `thematic_comparison`, `application_ideas`, `sermon_refinement`, `source_verification`.
+  - **PR-P4-05 EGW leads mode enforced**: provides work and chapter/theme leads to search in the official library; never reproduces text. Leads marked as unverified recall.
+  - Anti-fabrication instruction for pastoral anecdotes: requests the *kind* of illustration needed rather than inventing fictional anecdotes (Template Library §6.1 point 6).
+- **Structured Outline Workspace & Parser** (`packages/pastor/src/parser.ts`):
+  - Parses external AI output into structured, editable objects: title, thesis, points, sub-points, illustration placeholders, closing appeal, and discussion questions (PR-P4-06).
+  - Auto-detects Scripture references and EGW citations from outline points to populate the Pre-pulpit Citation Checklist.
+- **Pre-Pulpit Citation Checklist Engine** (`packages/pastor/src/checklist.ts`):
+  - Evaluates readiness to preach based on citation evidence levels (PR-P4-09).
+  - **Strict blocking rule (Exit Criterion 1)**: Any citation marked for verbatim pulpit quotation sitting below **E4** strictly blocks "Mark Ready to Preach".
+  - Enforces Invariant 3 / ADR-0019: **E3 is TEXT_CONSISTENT and does NOT verify**; E3 citations marked for verbatim quotation also block.
+  - Supports two resolution paths:
+    1. Personal attestation at an official source (`attestCitation`), raising evidence level to E4 with confirming person and timestamp.
+    2. Paraphrase (`paraphraseCitation`), unmarking the citation from verbatim quotation.
+- **Multi-Format Outline Exporter** (`packages/pastor/src/export.ts`):
+  - Exports completed outlines to three distinct formats (Exit Criterion 2):
+    1. GitHub-flavored Markdown.
+    2. Clean indented Plain Text.
+    3. Standalone print-friendly HTML with `@media print` styling.
+  - **Invariant compliance (PR-P4-07)**: Every exported citation carries its evidence level and, where E4, the confirming person and date.
+- **Audited No File Upload Invariant** (`test/pastor/no-file-upload-audit.test.ts`):
+  - Validates Exit Criterion 3 & PR-P4-01: zero file upload endpoints, zero multipart handlers, and zero file input elements across the codebase.
+- **All Phase 6 Exit Criteria verified via test suite** (`npm test` — 121/121 tests passing):
+  1. The Citation Checklist blocks correctly and resolves through attestation or paraphrase.
+  2. Outline export renders correctly in all three formats.
+  3. No file upload endpoint exists anywhere in the application.
+- **Integrated CI pipeline green**: `npm run ci` passes (`typecheck` + `lint` + `check:firewall` + `test` + `./scripts/check-docs.sh`).
+
+### Phase 5 P3 Spiritual Guidance completed (Prior)
 - **Domain Models & Source Block Caps** (`packages/guidance/src/types.ts`, `packages/guidance/src/caps.ts`):
   - Strict enforcement of per-block cap (8,000 characters) and per-conversation cap (40,000 characters) client-side and server-side (SR-D2 / AC-E3).
   - Browser-side `client_commitment` marker derivation over random 32-byte salt and normalised text; salt and body stay in the browser.
