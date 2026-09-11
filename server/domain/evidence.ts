@@ -301,6 +301,7 @@ export class VerificationService {
       input.sourceDirectoryEntryId,
       input.sourceDirectoryRevision
     );
+    const entry = this.sourceDirectory.getEntry(input.sourceDirectoryEntryId);
 
     const validation = validateAttestation(
       {
@@ -313,7 +314,8 @@ export class VerificationService {
         outcome: input.outcome,
         note: input.note,
       },
-      revision
+      revision,
+      entry?.currentRevision
     );
 
     if (!validation.ok) {

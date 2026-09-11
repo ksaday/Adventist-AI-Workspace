@@ -11,6 +11,12 @@
  * 7. Revision must be active and attestationEligible.
  * 8. Attester must be the claim's owner (actor_id = user_id).
  * 9. Any failure is REJECTED WITH EXPLANATION, never silently downgraded.
+ * 10. Revision must be the entry's CURRENT revision. A superseded revision row is retained
+ *     forever for historical attestations already bound to it (the DB's MATCH FULL foreign
+ *     key makes its host/prefix/eligibility/status columns immutable the moment any evidence
+ *     record references them — see 0004_phase7_evidence.sql), but its own `status` field can
+ *     therefore never be flipped to 'disabled' in place. Pinning acceptance to currentRevision
+ *     is what actually retires it for new attestations; do not rely on `status` alone.
  */
 
 import type {
@@ -43,6 +49,7 @@ export type AttestationReasonCode =
   | 'HOST_MISMATCH'
   | 'ENTRY_NOT_FOUND'
   | 'REVISION_NOT_FOUND'
+  | 'REVISION_SUPERSEDED'
   | 'ENTRY_NOT_ACTIVE'
   | 'ENTRY_NOT_ELIGIBLE'
   | 'PREFIX_NOT_SATISFIED'
@@ -228,7 +235,8 @@ export function canonicalizeAndValidateAttestedUrl(
  */
 export function validateAttestation(
   input: AttestationInput,
-  revision: SourceDirectoryEntryRevision | null | undefined
+  revision: SourceDirectoryEntryRevision | null | undefined,
+  currentRevisionNumber: number | null | undefined
 ): AttestationValidationResult {
   // 1. Invariant: actor_id = user_id (claim owner only)
   if (input.actorId !== input.claimOwnerId) {
@@ -245,6 +253,17 @@ export function validateAttestation(
       ok: false,
       error: `Source directory revision ${input.sourceDirectoryRevision} for entry '${input.sourceDirectoryEntryId}' not found.`,
       reasonCode: 'REVISION_NOT_FOUND',
+    };
+  }
+
+  // 2a. Revision must still be the entry's current one. A superseded revision's own `status`
+  // column cannot be trusted to reflect retirement (see invariant 10 above), so supersession
+  // is checked independently of `status`.
+  if (currentRevisionNumber == null || revision.revision !== currentRevisionNumber) {
+    return {
+      ok: false,
+      error: `Source directory revision ${input.sourceDirectoryRevision} for entry '${input.sourceDirectoryEntryId}' has been superseded. Re-fetch the entry's current revision and attest against that.`,
+      reasonCode: 'REVISION_SUPERSEDED',
     };
   }
 

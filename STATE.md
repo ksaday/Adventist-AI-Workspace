@@ -1,6 +1,6 @@
 # STATE.md — where the work actually is
 
-**Updated:** 2026-09-10 · **Package version:** 1.1
+**Updated:** 2026-09-11 · **Package version:** 1.1
 
 For a session starting with no history. Read [`AGENTS.md`](AGENTS.md) for the rules;
 this file is the situation.
@@ -9,11 +9,54 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 10 (Production readiness and launch) implemented and verified.** All 11 MVP Definition-of-Done conditions and all acceptance criteria (§55 / 73-acceptance-criteria.md) verified via automated audit suite (`test/ops/acceptance-criteria-audit.test.ts`). Production containerization (`Dockerfile`, `docker-compose.prod.yml`) and edge security configuration (`docs/80-ops/cloudflare-dns-tls.md` with Strict TLS 1.3 and 300s TTL DNS); Master key offline CSPRNG generator and dual-escrow 2-of-2 secret sharing with printable certificates (`scripts/generate-master-key.ts`, `docs/80-ops/runbooks/rb-17-master-key-escrow-ceremony.md`, `test/ops/master-key-escrow.test.ts`); Scheduled backups and weekly off-site dumps to an independent vendor with 30-day/52-week retention and zero-ephemeral/zero-EGW invariants (`server/jobs/backup.ts`, `test/ops/backup-jobs.test.ts`); System health monitoring probes and public status page (`server/monitoring/status.ts`, `app/status/page.tsx`, `test/ops/status-page.test.ts`); Billing service supporting `BILLING_MODE=off`, `manual`, and `live` with hosted checkouts, webhook HMAC verification, idempotency, and 60-day read-only grace periods (`server/billing/config.ts`, `test/billing/billing-config.test.ts`); Independence Disclaimer live across all three mandatory locations (`test/ops/independence-disclaimer.test.ts`); Pre-launch external penetration test runbook (`docs/80-ops/runbooks/rb-18-penetration-testing.md`); Closed beta launch plan for 10–20 members with ≥3 pastors (`docs/80-ops/beta-launch-plan.md`); and Legal questions Q-01 through Q-05 resolved and documented (`docs/60-risk/legal/legal-readiness-memo.md`). Full test suite passing (64 test files, 298 tests green) and integrated CI clean (`npm run ci`). Ready for Closed Beta and Public Launch.
+**Phase 10 (Production readiness and launch) implemented and verified.** All 11 MVP Definition-of-Done conditions and all acceptance criteria (§55 / 73-acceptance-criteria.md) verified via automated audit suite (`test/ops/acceptance-criteria-audit.test.ts`). Production containerization (`Dockerfile`, `docker-compose.prod.yml`) and edge security configuration (`docs/80-ops/cloudflare-dns-tls.md` with Strict TLS 1.3 and 300s TTL DNS); Master key offline CSPRNG generator and dual-escrow 2-of-2 secret sharing with printable certificates (`scripts/generate-master-key.ts`, `docs/80-ops/runbooks/rb-17-master-key-escrow-ceremony.md`, `test/ops/master-key-escrow.test.ts`); Scheduled backups and weekly off-site dumps to an independent vendor with 30-day/52-week retention and zero-ephemeral/zero-EGW invariants (`server/jobs/backup.ts`, `test/ops/backup-jobs.test.ts`); System health monitoring probes and public status page (`server/monitoring/status.ts`, `app/status/page.tsx`, `test/ops/status-page.test.ts`); Billing service supporting `BILLING_MODE=off`, `manual`, and `live` with hosted checkouts, webhook HMAC verification, idempotency, and 60-day read-only grace periods (`server/billing/config.ts`, `test/billing/billing-config.test.ts`); Independence Disclaimer live across all three mandatory locations (`test/ops/independence-disclaimer.test.ts`); Pre-launch external penetration test runbook (`docs/80-ops/runbooks/rb-18-penetration-testing.md`); Closed beta launch plan for 10–20 members with ≥3 pastors (`docs/80-ops/beta-launch-plan.md`); and Legal questions Q-01 through Q-05 resolved and documented (`docs/60-risk/legal/legal-readiness-memo.md`). Full test suite passing (64 test files, 299 tests green) and integrated CI clean (`npm run ci`). **The Phase 7 migration has now been run against real PostgreSQL 16** (Blocking item 4, below, is closed); the exercise found and closed a real attestation-revision gap and a real production-build blocker — see "Engineering validation against real PostgreSQL" below. Ready for Closed Beta and Public Launch.
 
 ---
 
 ## What just happened
+
+### Engineering validation against real PostgreSQL (Blocking item 4 closed, 2026-09-11)
+STATE.md previously flagged that the two `substring(... from '...')` generated-column patterns
+in `server/data/migrations/0004_phase7_evidence.sql` (`official_url_host`, `official_url_path`)
+had never been run against a real PostgreSQL engine — the migration is SQL in a markdown-adjacent
+file, so nothing compiles it. Ran all four migrations against a real local PostgreSQL 16 and
+exercised the full adversarial matrix from this file's own "If you are reviewing" checklist
+(valid URL, host absent, lookalike host, userinfo/port, homepage/search/bare-prefix/sibling-prefix
+paths, dot-segment/`%2e`/backslash/`//` escapes, ineligible revision, disabled revision, each of
+the six bound columns NULLed in turn, non-owner actor, and read-back after supersession).
+- **The generated columns and CHECK/FK constraints held on every adversarial case.** All 16
+  intended-rejection scenarios were in fact rejected by real PostgreSQL, and the one valid case
+  passed — no regex or constraint hole found in `e4_requires_bound_attestation` or
+  `e4_binds_to_directory_revision`.
+- **Found and closed a real attestation gap**, not anticipated by any prior review round: the
+  `e4_binds_to_directory_revision` `MATCH FULL` foreign key makes a `source_directory_entry_revision`
+  row's `host`/`attestation_path_prefix`/`attestation_eligible`/`status` columns immutable in
+  PostgreSQL (default `RESTRICT`) the moment any `evidence_record` references it — confirmed live
+  by attempting the `UPDATE` and watching PostgreSQL reject it. So a revision can never actually be
+  flipped to `'disabled'` in place once it has been attested against even once; retiring it can only
+  mean appending a new revision row and repointing `source_directory_entry.current_revision`. But
+  `packages/evidence/src/attestation.ts`'s `validateAttestation` only checked `revision.status`, and
+  `SourceDirectory.getRevision` resolves by a client-supplied revision number with no cross-check
+  against the entry's current revision — so a superseded-but-still-`'active'` revision row remained
+  attestable forever. **Fixed**: `validateAttestation` now takes the entry's `currentRevisionNumber`
+  and rejects a non-current revision with a new `REVISION_SUPERSEDED` reason code, independent of
+  `status` (`packages/evidence/src/attestation.ts`, `server/domain/evidence.ts`). Covered by a new
+  red-team case, Attack 11, in `test/evidence/false-verification-redteam.test.ts`.
+- **Found and fixed a real production-build blocker**: `npm run build` (the same command
+  `Dockerfile` runs at its `RUN npm run build` step) failed outright — 22 relative imports across
+  6 files under `app/` use explicit `.js` extensions resolving to `.ts`/`.tsx` sources (the Node ESM
+  convention this package's `tsconfig.json` `moduleResolution: "bundler"` already accepts), but
+  Next.js's default webpack config has no alias for that and refused to resolve them. `tsc --noEmit`
+  and `vitest` never exercise webpack's resolution path, so this had never been caught. **Fixed** by
+  adding `resolve.extensionAlias` to the `webpack()` hook in `next.config.mjs`; `npm run build` now
+  compiles and prerenders all 7 routes cleanly. This means the Dockerfile's build stage — and by
+  extension the "production containerization" claim in Phase 10 below — had never actually been
+  exercised end-to-end before this session.
+- Full suite re-verified after both fixes: `npm run ci` green (typecheck, lint, cost-firewall,
+  299/299 tests across 64 files, `check-docs.sh`), plus `npm run build` now green (was not part of
+  `ci` and had not previously been run in this repository).
+- Blocking item 4 (below) is now resolved: PostgreSQL migration validated as running correctly.
+  Items 1–3 remain and still need the owner, not engineering.
 
 ### Phase 10 Production readiness and launch completed
 - **Production Infrastructure & Edge Deployment** (`Dockerfile`, `docker-compose.prod.yml`, `docs/80-ops/cloudflare-dns-tls.md`):
@@ -62,7 +105,7 @@ this file is the situation.
   - Q-05 (Bibliographic catalogue): facts-only metadata, zero excerpts/summaries, public sources.
 - **Acceptance Criteria & Definition of Done Audit** (`test/ops/acceptance-criteria-audit.test.ts`):
   - Comprehensive automated test suite verifying all 11 conditions in MVP Definition of Done (04-mvp-scope.md §5) and core acceptance criteria (73-acceptance-criteria.md).
-- **All Phase 10 Exit Criteria verified via test suite** (`npm test` — 298/298 tests passing across 64 test files):
+- **All Phase 10 Exit Criteria verified via test suite** (`npm test` — 299/299 tests passing across 64 test files):
   1. Every acceptance criterion in 73-acceptance-criteria.md passes.
   2. All eleven MVP definition-of-done conditions are met.
   3. A full month has elapsed with a verified $0.00 AI invoice.
@@ -436,7 +479,7 @@ is not relitigated from scratch.
 | 1 | **Approver identity** in the ADR-0022 decision record — currently `[VERIFY]` | Owner | Nothing technical, but the audit record is incomplete until filled |
 | 2 | **`Q-06`** — per-host terms review before the reachability probe may be enabled | Owner + counsel | `probe_enabled` stays `false` |
 | 3 | **`Q-14`** — published provider documentation sanctioning browser-origin calls with an end-user key | Owner + engineering | All BYOK work. Vendor silence is not consent |
-| 4 | Migration validation of the two `substring` patterns in `evidence_record` against the target PostgreSQL | Engineering | First migration only |
+| ~~4~~ | ~~Migration validation of the two `substring` patterns in `evidence_record` against the target PostgreSQL~~ — **done 2026-09-11** against real PostgreSQL 16; see "Engineering validation against real PostgreSQL" above | Engineering | Closed |
 
 Items 2 and 3 are **gates, not schedule items.** Neither has a date and neither should be
 worked around.

@@ -88,7 +88,8 @@ describe('False-Verification Red-Team Suite (Phase 7 Exit Criteria)', () => {
           rawUrl: url,
           outcome: 'found_correct',
         },
-        activeEgwRevision
+        activeEgwRevision,
+        activeEgwRevision.revision
       );
 
       expect(result.ok).toBe(false);
@@ -120,7 +121,8 @@ describe('False-Verification Red-Team Suite (Phase 7 Exit Criteria)', () => {
           rawUrl: url,
           outcome: 'found_correct',
         },
-        activeEgwRevision
+        activeEgwRevision,
+        activeEgwRevision.revision
       );
 
       expect(result.ok).toBe(false);
@@ -150,7 +152,8 @@ describe('False-Verification Red-Team Suite (Phase 7 Exit Criteria)', () => {
           rawUrl: url,
           outcome: 'found_correct',
         },
-        activeEgwRevision
+        activeEgwRevision,
+        activeEgwRevision.revision
       );
 
       expect(result.ok).toBe(false);
@@ -174,7 +177,8 @@ describe('False-Verification Red-Team Suite (Phase 7 Exit Criteria)', () => {
         rawUrl: 'https://egwwritings.org/search?query=love',
         outcome: 'found_correct',
       },
-      searchRev
+      searchRev,
+      searchRev.revision
     );
     expect(searchRes.ok).toBe(false);
     if (!searchRes.ok) {
@@ -193,7 +197,8 @@ describe('False-Verification Red-Team Suite (Phase 7 Exit Criteria)', () => {
         rawUrl: 'https://egwwritings.org/read/123',
         outcome: 'found_correct',
       },
-      disabledRev
+      disabledRev,
+      disabledRev.revision
     );
     expect(disabledRes.ok).toBe(false);
     if (!disabledRes.ok) {
@@ -213,13 +218,42 @@ describe('False-Verification Red-Team Suite (Phase 7 Exit Criteria)', () => {
         rawUrl: 'https://egwwritings.org/read/123',
         outcome: 'found_correct',
       },
-      activeEgwRevision
+      activeEgwRevision,
+      activeEgwRevision.revision
     );
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.reasonCode).toBe('ACTOR_MISMATCH');
       expect(result.error).toContain('actor_id = user_id');
+    }
+  });
+
+  // ── Attack 11: Superseded Revision Still Marked 'active' ─────────────────
+  it('Attack 11: A revision that is no longer the entry\'s current one is rejected even if its own status still reads active', () => {
+    // The MATCH FULL foreign key in evidence_record binds host/prefix/eligibility/status
+    // as snapshot columns. Once any evidence_record references a revision row, PostgreSQL's
+    // default RESTRICT behavior makes that row's status column immutable — it can never be
+    // flipped to 'disabled' in place (verified against real PostgreSQL 16). Retiring a
+    // revision therefore means bumping the entry's currentRevision, not editing the old row,
+    // so acceptance must be pinned to currentRevision rather than trusting `status` alone.
+    const staleResult = validateAttestation(
+      {
+        claimId: 'c1',
+        claimOwnerId: 'user_1',
+        actorId: 'user_1',
+        sourceDirectoryEntryId: 'egw_library_read',
+        sourceDirectoryRevision: activeEgwRevision.revision,
+        rawUrl: 'https://egwwritings.org/read/123',
+        outcome: 'found_correct',
+      },
+      activeEgwRevision,
+      activeEgwRevision.revision + 1 // entry has since moved on to a newer revision
+    );
+
+    expect(staleResult.ok).toBe(false);
+    if (!staleResult.ok) {
+      expect(staleResult.reasonCode).toBe('REVISION_SUPERSEDED');
     }
   });
 

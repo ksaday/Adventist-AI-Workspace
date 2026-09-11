@@ -232,7 +232,8 @@ C2 | egw | The Great Controversy, p. 423 | high | Identifies 1844 as the culmina
         rawUrl: 'https://egwwritings.org/', // Bare homepage
         outcome: 'found_correct',
       },
-      currentRev!
+      currentRev!,
+      currentRev!.revision
     );
 
     expect(badAttestation.ok).toBe(false);

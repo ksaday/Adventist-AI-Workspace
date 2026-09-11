@@ -123,7 +123,8 @@ describe('Attestation Binding & URL Canonicalization (SR-7.6)', () => {
           rawUrl: 'https://egwwritings.org/read/128.534',
           outcome,
         },
-        activeEgwRevision
+        activeEgwRevision,
+        activeEgwRevision.revision
       );
 
       expect(res.ok).toBe(true);

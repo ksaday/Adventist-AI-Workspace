@@ -79,6 +79,16 @@ const nextConfig = {
       },
     ];
   },
+  webpack(config) {
+    // Source imports use explicit '.js' extensions (Node ESM convention, matches
+    // "type": "module" and tsconfig's moduleResolution: "bundler"), but resolve
+    // against '.ts'/'.tsx' source files. Webpack has no such alias by default,
+    // so without this every cross-package import fails `next build`.
+    config.resolve.extensionAlias = {
+      '.js': ['.ts', '.tsx', '.js'],
+    };
+    return config;
+  },
 };
 
 export default nextConfig;
