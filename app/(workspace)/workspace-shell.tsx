@@ -8,6 +8,7 @@ import { SpiritualGuidanceWorkspace } from './spiritual-guidance.js';
 import { PastorsAidsWorkspace } from './pastors-aids.js';
 import { VerificationWorkbench } from './verification-workbench.js';
 import { AdminConsole } from './admin-console.js';
+import { HelpModal } from './help-modal.js';
 
 export interface MessageItem {
   seq: number;
@@ -33,6 +34,7 @@ export function WorkspaceShell({
   const [activeTool, setActiveTool] = useState<'prayer' | 'guidance' | 'pastor' | 'verify'>(initialTool);
   const [ephemeralMode, setEphemeralMode] = useState(isEphemeral);
   const [showAdminConsole, setShowAdminConsole] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   return (
     <div
@@ -178,6 +180,22 @@ export function WorkspaceShell({
         </nav>
 
         <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <button
+            type="button"
+            onClick={() => setShowHelpModal(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+              padding: 0,
+              fontFamily: 'inherit',
+            }}
+          >
+            📖 Help & Evidence Guide
+          </button>
           <button
             type="button"
             onClick={() => setShowAdminConsole(true)}
@@ -332,6 +350,21 @@ export function WorkspaceShell({
                   ⚑ {ephemeralMode ? t('mode_ephemeral', {}, { locale }) : t('make_ephemeral', {}, { locale })}
                 </button>
               </div>
+
+              <div
+                data-testid="workspace-independence-disclaimer"
+                style={{
+                  fontSize: '0.72rem',
+                  color: 'var(--text-muted, #94a3b8)',
+                  textAlign: 'center',
+                  marginTop: '0.75rem',
+                  lineHeight: '1.4',
+                  borderTop: '1px solid var(--border-color, #e2e8f0)',
+                  paddingTop: '0.5rem',
+                }}
+              >
+                SDA AI Workspace is an independent project and is not officially affiliated with, sponsored by, or endorsed by the General Conference of Seventh-day Adventists or the Ellen G. White Estate, Inc.
+              </div>
             </footer>
           </>
         )}
@@ -342,6 +375,14 @@ export function WorkspaceShell({
           actor={{ userId: 'usr-admin', role: 'admin', tier: 'pastor', totpEnabled: true }}
           locale={locale}
           onClose={() => setShowAdminConsole(false)}
+        />
+      )}
+
+      {showHelpModal && (
+        <HelpModal
+          isOpen={showHelpModal}
+          onClose={() => setShowHelpModal(false)}
+          locale={locale}
         />
       )}
     </div>

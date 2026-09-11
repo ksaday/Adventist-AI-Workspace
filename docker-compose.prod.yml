@@ -1,0 +1,77 @@
+# SDA AI Workspace — Production Docker Compose Orchestration
+# Designed for low-cost, high-reliability deployment ($60/mo infrastructure budget)
+
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sdaws/workspace:production
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://sdaws_app:${DB_PASSWORD:-change_me_in_production}@db:5432/sdaws_production?sslmode=disable
+      - APP_MASTER_KEY_HEX=${APP_MASTER_KEY_HEX}
+      - BILLING_MODE=${BILLING_MODE:-off}
+      - COOKIE_SECRET=${COOKIE_SECRET}
+      - BYOK_ENABLED=false
+      - MAINTENANCE_MODE=false
+      - NEXT_TELEMETRY_DISABLED=1
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - sdaws_internal
+    deploy:
+      resources:
+        limits:
+          cpus: '1.50'
+          memory: 1024M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: sdaws_production
+      POSTGRES_USER: sdaws_app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me_in_production}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sdaws_internal
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 512M
+        reservations:
+          cpus: '0.20'
+          memory: 128M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sdaws_app -d sdaws_production"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  sdaws_internal:
+    driver: bridge
+    internal: false
+
+volumes:
+  postgres_data:
+    driver: local

@@ -72,7 +72,7 @@
       "firstPublished": 1911,
       "referenceEdition": { "year": 1911, "pageCount": 602 },
       "officialUrlTemplate": "https://m.egwwritings.org/en/book/131/{page}",
-      "localisedTitles": { "ko": "사도행전" },
+      "localisedTitles": { "ko": "사도행전", "ko_alt": "사도행적" },
       "lastReviewed": "2026-08-01"
     },
     {
@@ -109,6 +109,30 @@
       "referenceEdition": { "year": 1903, "pageCount": 309 },
       "officialUrlTemplate": "https://m.egwwritings.org/en/book/29/{page}",
       "localisedTitles": { "ko": "교육" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "MB",
+      "canonicalTitle": "Thoughts from the Mount of Blessing",
+      "abbreviations": ["MB", "MBless"],
+      "author": "Ellen G. White",
+      "publisher": "Pacific Press Publishing Association",
+      "firstPublished": 1896,
+      "referenceEdition": { "year": 1896, "pageCount": 172 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/142/{page}",
+      "localisedTitles": { "ko": "산상수훈" },
+      "lastReviewed": "2026-08-01"
+    },
+    {
+      "workId": "EW",
+      "canonicalTitle": "Early Writings",
+      "abbreviations": ["EW"],
+      "author": "Ellen G. White",
+      "publisher": "Review and Herald Publishing Association",
+      "firstPublished": 1882,
+      "referenceEdition": { "year": 1882, "pageCount": 316 },
+      "officialUrlTemplate": "https://m.egwwritings.org/en/book/28/{page}",
+      "localisedTitles": { "ko": "초기문집" },
       "lastReviewed": "2026-08-01"
     },
     {

@@ -30,6 +30,9 @@ export interface EmergencyResource {
   name: string;
   contact: string;
   available: string;
+  verifiedAt: string;
+  verifiedBy: string;
+  verificationMethod: string;
 }
 
 export function screenSafety(text: string, locales: string[] = ['en', 'ko']): RiskMatch[] {

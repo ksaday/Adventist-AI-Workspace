@@ -97,6 +97,14 @@ export function compose(input: ComposeInput): ComposeOutput {
   const sections: ComposedSection[] = [];
   const parts: string[] = [];
 
+  // 0. Independence Disclaimer Header (SR-D4 / PRD §2.4)
+  const disclaimerText = `[INDEPENDENCE DISCLAIMER: SDA AI Workspace is an independent project and is not officially affiliated with, sponsored by, or endorsed by the General Conference of Seventh-day Adventists or the Ellen G. White Estate, Inc.]`;
+  parts.push(disclaimerText);
+  sections.push({
+    title: 'Independence Disclaimer',
+    description: 'Declares independent project status and lack of official GC or EGW Estate affiliation.',
+  });
+
   // 1. Role and Scope
   const roleText =
     `You are assisting a Seventh-day Adventist member with Bible study and doctrinal research.\n` +

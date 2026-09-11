@@ -1,0 +1,71 @@
+{
+  "version": "1.0",
+  "realBibleRefs": [
+    "John 3:16", "Genesis 1:1", "Revelation 14:6-12", "Daniel 8:14", "Exodus 20:8-11",
+    "Romans 8:28", "Psalm 23:1", "Matthew 24:14", "Isaiah 58:13-14", "Jeremiah 29:11",
+    "Hebrews 11:1", "Ephesians 2:8-9", "Galatians 5:22-23", "Philippians 4:6-7", "Micah 6:8",
+    "1 Corinthians 13:13", "2 Timothy 3:16-17", "1 John 1:9", "Titus 2:13", "James 1:5",
+    "Proverbs 3:5-6", "Joshua 1:9", "Deuteronomy 6:4-5", "Leviticus 23:3", "Numbers 6:24-26",
+    "1 Thessalonians 4:16-17", "2 Thessalonians 2:3", "Colossians 3:1-2", "1 Peter 2:9", "2 Peter 3:9",
+    "Jude 1:24", "Acts 1:8", "Luke 19:10", "Mark 16:15", "Ecclesiastes 12:13",
+    "Song of Solomon 2:16", "Malachi 3:10", "Zechariah 4:6", "Habakkuk 2:4", "Nahum 1:7",
+    "요한복음 3:16", "창세기 1:1", "요한계시록 14:6-12", "다니엘 8:14", "출애굽기 20:8-11",
+    "로마서 8:28", "시편 23:1", "마태복음 24:14", "이사야 58:13-14", "예레미야 29:11",
+    "히브리서 11:1", "에베소서 2:8-9", "갈라디아서 5:22-23", "빌립보서 4:6-7", "미가 6:8",
+    "고린도전서 13:13", "디모데후서 3:16-17", "요한일서 1:9", "디도서 2:13", "야고보서 1:5",
+    "잠언 3:5-6", "여호수아 1:9", "신명기 6:4-5", "레위기 23:3", "민수기 6:24-26",
+    "데살로니가전서 4:16-17", "데살로니가후서 2:3", "골로새서 3:1-2", "베드로전서 2:9", "베드로후서 3:9",
+    "유다서 1:24", "사도행전 1:8", "누가복음 19:10", "마가복음 16:15", "전도서 12:13"
+  ],
+  "fabricatedBibleRefs": [
+    "Hezekiah 2:4", "3 Hezekiah 1:5", "3 Corinthians 2:1", "Judas 2:3", "1 Thomas 3:4",
+    "Gospel of Mary 1:2", "Enoch 5:1", "Tobit 3:2", "Judith 4:5", "1 Maccabees 2:3",
+    "Bel and the Dragon 1:1", "Prayer of Manasseh 1:4", "Sirach 5:2", "Baruch 2:1", "2 Thomas 4:1",
+    "토마스복음 1:1", "유다복음 2:4", "헤스기야 1:1", "마카베오상 3:2", "외경 1:1",
+    "Daniel 15:1", "Daniel 13:5", "Revelation 25:1", "Revelation 23:4", "Matthew 35:1",
+    "Genesis 60:1", "Exodus 55:2", "Mark 20:1", "Luke 30:5", "John 25:3",
+    "Romans 20:1", "1 Corinthians 20:4", "Galatians 10:2", "Ephesians 12:1", "Philippians 8:3",
+    "다니엘 15:1", "요한계시록 25:1", "마태복음 35:1", "창세기 60:1", "출애굽기 55:2",
+    "John 3:500", "Genesis 1:999", "Romans 8:888", "Matthew 1:777", "Psalm 23:99",
+    "Romans 8:20-10", "Genesis 1:15-5", "Matthew 5:20-10", "John 3:16-12", "다니엘 8:20-10"
+  ],
+  "ordinaryProseNonRefs": [
+    "John said that he would meet us at noon today.",
+    "Please mark the date on your calendar before tomorrow.",
+    "Peter came to church early to set up the audio equipment.",
+    "James and Luke are leading the youth ministry retreat.",
+    "In the genesis of our project, we faced multiple architectural constraints.",
+    "We need a revelation of God's grace in our daily lives.",
+    "Let us sing a psalm of thanksgiving during the opening service.",
+    "The acts of the pioneers inspire our commitment today.",
+    "Judges and magistrates must administer equity without partiality.",
+    "Every king and queen in history eventually stepped down.",
+    "요한은 오늘 오후에 우리와 만나기로 이야기했습니다.",
+    "달력에 중요한 일정을 마크해 두시기 바랍니다.",
+    "베드로는 일찍 예배당에 도착하여 준비를 마쳤습니다.",
+    "우리가 사역을 시작한 기원과 배경에 대해 나눕니다.",
+    "사도시대의 헌신과 열정을 기억합시다."
+  ],
+  "realEgwCitations": [
+    "The Great Controversy, p. 423", "Steps to Christ, p. 15", "The Desire of Ages, p. 250",
+    "Patriarchs and Prophets, p. 300", "Prophets and Kings, p. 150", "Acts of the Apostles, p. 75",
+    "Christ's Object Lessons, p. 120", "Ministry of Healing, p. 80", "Education, p. 57",
+    "Thoughts from the Mount of Blessing, p. 45", "Testimonies for the Church, vol. 1, p. 216",
+    "Early Writings, p. 64", "GC 650", "DA 123", "SC 45", "PP 110", "PK 95", "AA 42",
+    "시대의 소망 250", "정로의 계단 15", "각 시대의 대쟁투 423", "부조와 선지자 300",
+    "선지자와 왕 150", "사도행적 75", "실물교훈 120", "치료봉사 80", "교육 57"
+  ],
+  "fabricatedEgwTitles": [
+    "The Heavenly Blueprint, p. 12", "Counsel to Young Mothers, p. 55", "The Final Shaking, p. 104",
+    "The Remnant Trumpet, p. 88", "Walking with Enoch, p. 42", "The Secret of Sanctuary, p. 201",
+    "Light in the Storm, p. 15", "Angels on Assignment, p. 90", "Visions of Eternity, p. 33",
+    "The Final Hour, p. 67", "하늘의 청사진 22", "젊은 어머니들에게 보내는 권조 55",
+    "마지막 흔들림 104", "남은 자의 나팔 88", "에녹과의 동행 42"
+  ],
+  "implausibleEgwPages": [
+    "Steps to Christ, p. 950", "Steps to Christ, p. 1500", "Thoughts from the Mount of Blessing, p. 800",
+    "Christ's Object Lessons, p. 2500", "Education, p. 1800", "Early Writings, p. 4000",
+    "The Desire of Ages, p. 9999", "The Great Controversy, p. 8888", "정로의 계단 950",
+    "산상수훈 800", "교육 1800", "초기문집 4000"
+  ]
+}

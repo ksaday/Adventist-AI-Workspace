@@ -38,7 +38,7 @@ interface CatalogueEntry {
     pageCount: number;
   };
   officialUrlTemplate: string;
-  localisedTitles?: Record<string, string>;
+  localisedTitles?: Record<string, string | undefined>;
 }
 
 const CATALOGUE_ENTRIES: CatalogueEntry[] = egwCatalogue.works;
@@ -82,9 +82,13 @@ function getSearchCandidates(): SearchCandidate[] {
     if (work.canonicalTitle.startsWith('The ')) {
       candidates.push({ phrase: work.canonicalTitle.slice(4), isAbbr: false, work });
     }
-    // Localised Korean title
-    if (work.localisedTitles?.ko) {
-      candidates.push({ phrase: work.localisedTitles.ko, isAbbr: false, work });
+    // Localised titles (e.g. ko, ko_alt, etc.)
+    if (work.localisedTitles) {
+      for (const title of Object.values(work.localisedTitles)) {
+        if (title) {
+          candidates.push({ phrase: title, isAbbr: false, work });
+        }
+      }
     }
     // Abbreviations
     for (const abbr of work.abbreviations) {
