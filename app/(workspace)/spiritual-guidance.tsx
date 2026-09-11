@@ -57,6 +57,11 @@ export function SpiritualGuidanceWorkspace({
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [rawAnswerInput, setRawAnswerInput] = useState('');
   const [parsedAnswer, setParsedAnswer] = useState<FiveBandAnswer | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  // One id per guidance session, shared by every source block saved from it (session_id column;
+  // E3 is deliberately session-scoped and never re-derivable — see packages/guidance/src/caps.ts).
+  const [sessionId] = useState(() => crypto.randomUUID());
 
   // 1. Safety check
   const riskMatches = useMemo(() => {
@@ -172,6 +177,61 @@ export function SpiritualGuidanceWorkspace({
     const parsed = parseFiveBandAnswer(rawAnswerInput);
     setParsedAnswer(parsed);
     setShowAnswerModal(false);
+    setSaveStatus('idle');
+    setSaveError(null);
+  };
+
+  const handleSaveToAccount = async () => {
+    if (!parsedAnswer) return;
+    setSaveStatus('saving');
+    setSaveError(null);
+    try {
+      const convRes = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          app: 'p3',
+          title: question.trim().slice(0, 80) || 'Spiritual guidance',
+          privacyMode: 'standard',
+        }),
+      });
+      if (!convRes.ok) throw new Error('Could not save this conversation.');
+      const { conversation } = await convRes.json();
+
+      const postMessage = (role: 'user' | 'workspace' | 'assistant_external', content: string) =>
+        fetch(`/api/conversations/${conversation.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role, content }),
+        });
+
+      const messageCalls = [postMessage('user', question)];
+      if (composedPrompt) messageCalls.push(postMessage('workspace', composedPrompt));
+      messageCalls.push(postMessage('assistant_external', rawAnswerInput));
+
+      const sourceBlockCalls = sources.map(block =>
+        fetch(`/api/conversations/${conversation.id}/source-blocks`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: block.id,
+            kind: block.kind,
+            charCount: block.charCount,
+            attributedWorkId: block.attributedWorkId,
+            clientCommitment: block.commitment,
+            sessionId,
+          }),
+        })
+      );
+
+      const results = await Promise.all([...messageCalls, ...sourceBlockCalls]);
+      if (results.some(r => !r.ok)) throw new Error('Could not save this conversation.');
+
+      setSaveStatus('saved');
+    } catch (err) {
+      setSaveStatus('error');
+      setSaveError(err instanceof Error ? err.message : 'Could not save this conversation.');
+    }
   };
 
   return (
@@ -723,13 +783,37 @@ export function SpiritualGuidanceWorkspace({
             }}
           >
             <strong style={{ fontSize: '0.95rem' }}>Structured Five-Band Answer</strong>
-            <button
-              type="button"
-              onClick={() => setParsedAnswer(null)}
-              style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}
-            >
-              Clear
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {saveStatus === 'error' && (
+                <span role="alert" style={{ color: '#dc2626', fontSize: '0.8rem' }}>
+                  {saveError}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={handleSaveToAccount}
+                disabled={saveStatus === 'saving' || saveStatus === 'saved'}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: '6px',
+                  border: '1px solid #2563eb',
+                  backgroundColor: saveStatus === 'saved' ? '#fff' : '#2563eb',
+                  color: saveStatus === 'saved' ? '#2563eb' : '#fff',
+                  cursor: saveStatus === 'saving' || saveStatus === 'saved' ? 'default' : 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.8rem',
+                }}
+              >
+                {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? '✓ Saved to your account' : 'Save to my account'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setParsedAnswer(null)}
+                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}
+              >
+                Clear
+              </button>
+            </div>
           </div>
 
           <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>

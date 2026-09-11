@@ -70,6 +70,10 @@ export function PastorsAidsWorkspace({
   // Export modal state
   const [exportModalFormat, setExportModalFormat] = useState<'markdown' | 'text' | 'html' | null>(null);
 
+  // Save-to-account state
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   // 1. Live Bible canon validation for anchor passage
   const anchorValidation = useMemo(() => {
     if (!anchorPassage.trim()) return null;
@@ -124,6 +128,47 @@ export function PastorsAidsWorkspace({
     const parsed = parseStructuredOutline(rawPasteInput, topic);
     setOutline(parsed);
     setShowPasteModal(false);
+    setSaveStatus('idle');
+    setSaveError(null);
+  };
+
+  const handleSaveToAccount = async () => {
+    if (!outline) return;
+    setSaveStatus('saving');
+    setSaveError(null);
+    try {
+      const convRes = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          app: 'p4',
+          title: outline.title?.trim().slice(0, 80) || topic.trim().slice(0, 80) || 'Sermon outline',
+          privacyMode: 'standard',
+        }),
+      });
+      if (!convRes.ok) throw new Error('Could not save this outline.');
+      const { conversation } = await convRes.json();
+
+      const postMessage = (role: 'user' | 'workspace' | 'assistant_external', content: string) =>
+        fetch(`/api/conversations/${conversation.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role, content }),
+        });
+
+      const taskSummary = `Task: ${task}\nTopic: ${topic}\nAnchor passage: ${anchorPassage}\nOccasion: ${occasion}`;
+      const calls = [postMessage('user', taskSummary)];
+      if (composedPrompt) calls.push(postMessage('workspace', composedPrompt));
+      calls.push(postMessage('assistant_external', rawPasteInput));
+
+      const results = await Promise.all(calls);
+      if (results.some(r => !r.ok)) throw new Error('Could not save this outline.');
+
+      setSaveStatus('saved');
+    } catch (err) {
+      setSaveStatus('error');
+      setSaveError(err instanceof Error ? err.message : 'Could not save this outline.');
+    }
   };
 
   // Checklist Handlers
@@ -485,7 +530,29 @@ export function PastorsAidsWorkspace({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {saveStatus === 'error' && (
+                  <span role="alert" style={{ color: '#dc2626', fontSize: '0.8rem' }}>
+                    {saveError}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={handleSaveToAccount}
+                  disabled={saveStatus === 'saving' || saveStatus === 'saved'}
+                  style={{
+                    padding: '0.4rem 0.75rem',
+                    borderRadius: '6px',
+                    border: '1px solid #2563eb',
+                    background: saveStatus === 'saved' ? '#fff' : '#2563eb',
+                    color: saveStatus === 'saved' ? '#2563eb' : '#fff',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    cursor: saveStatus === 'saving' || saveStatus === 'saved' ? 'default' : 'pointer',
+                  }}
+                >
+                  {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? '✓ Saved to your account' : 'Save to my account'}
+                </button>
                 <button
                   type="button"
                   onClick={() => setExportModalFormat('markdown')}

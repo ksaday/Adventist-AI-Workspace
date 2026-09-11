@@ -33,6 +33,8 @@ export function PrayerNote({
   const [draft, setDraft] = useState<DeterministicPrayerDraft | null>(null);
   const [composedPrompt, setComposedPrompt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Safety screening
   const safetyCheck = screenPrayerSafety(burden);
@@ -67,6 +69,8 @@ export function PrayerNote({
     });
     setDraft(result);
     setComposedPrompt(null);
+    setSaveStatus('idle');
+    setSaveError(null);
   };
 
   const handlePreparePrompt = () => {
@@ -88,6 +92,43 @@ export function PrayerNote({
     navigator.clipboard?.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveToAccount = async () => {
+    if (!draft) return;
+    setSaveStatus('saving');
+    setSaveError(null);
+    try {
+      const convRes = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          app: 'p2',
+          title: burden.trim().slice(0, 80) || 'Prayer note',
+          privacyMode: 'standard',
+        }),
+      });
+      if (!convRes.ok) throw new Error('Could not save this prayer note.');
+      const { conversation } = await convRes.json();
+
+      const postMessage = (role: 'user' | 'workspace', content: string) =>
+        fetch(`/api/conversations/${conversation.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role, content }),
+        });
+
+      const [userMsg, draftMsg] = await Promise.all([
+        postMessage('user', burden),
+        postMessage('workspace', draft.prayerText),
+      ]);
+      if (!userMsg.ok || !draftMsg.ok) throw new Error('Could not save this prayer note.');
+
+      setSaveStatus('saved');
+    } catch (err) {
+      setSaveStatus('error');
+      setSaveError(err instanceof Error ? err.message : 'Could not save this prayer note.');
+    }
   };
 
   return (
@@ -465,10 +506,38 @@ export function PrayerNote({
               color: "var(--text-muted)",
               borderTop: "1px solid var(--border-color)",
               paddingTop: "0.5rem",
+              marginBottom: isEphemeral ? 0 : "0.75rem",
             }}
           >
             {draft.notice}
           </div>
+
+          {!isEphemeral && (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <button
+                type="button"
+                onClick={handleSaveToAccount}
+                disabled={saveStatus === "saving" || saveStatus === "saved"}
+                style={{
+                  padding: "0.5rem 1rem",
+                  borderRadius: "6px",
+                  border: "1px solid var(--accent-primary)",
+                  backgroundColor: saveStatus === "saved" ? "var(--bg-card)" : "var(--accent-primary)",
+                  color: saveStatus === "saved" ? "var(--accent-primary)" : "#fff",
+                  cursor: saveStatus === "saving" || saveStatus === "saved" ? "default" : "pointer",
+                  fontWeight: 600,
+                  fontSize: "0.85rem",
+                }}
+              >
+                {saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "✓ Saved to your account" : "Save to my account"}
+              </button>
+              {saveStatus === "error" && (
+                <span role="alert" style={{ color: "var(--accent-red, #dc2626)", fontSize: "0.8rem" }}>
+                  {saveError}
+                </span>
+              )}
+            </div>
+          )}
         </section>
       )}
 

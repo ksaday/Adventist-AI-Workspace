@@ -9,11 +9,52 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 10 (Production readiness and launch) implemented and verified.** All 11 MVP Definition-of-Done conditions and all acceptance criteria (§55 / 73-acceptance-criteria.md) verified via automated audit suite (`test/ops/acceptance-criteria-audit.test.ts`). Production containerization (`Dockerfile`, `docker-compose.prod.yml`) and edge security configuration (`docs/80-ops/cloudflare-dns-tls.md` with Strict TLS 1.3 and 300s TTL DNS); Master key offline CSPRNG generator and dual-escrow 2-of-2 secret sharing with printable certificates (`scripts/generate-master-key.ts`, `docs/80-ops/runbooks/rb-17-master-key-escrow-ceremony.md`, `test/ops/master-key-escrow.test.ts`); Scheduled backups and weekly off-site dumps to an independent vendor with 30-day/52-week retention and zero-ephemeral/zero-EGW invariants (`server/jobs/backup.ts`, `test/ops/backup-jobs.test.ts`); System health monitoring probes and public status page (`server/monitoring/status.ts`, `app/status/page.tsx`, `test/ops/status-page.test.ts`); Billing service supporting `BILLING_MODE=off`, `manual`, and `live` with hosted checkouts, webhook HMAC verification, idempotency, and 60-day read-only grace periods (`server/billing/config.ts`, `test/billing/billing-config.test.ts`); Independence Disclaimer live across all three mandatory locations (`test/ops/independence-disclaimer.test.ts`); Pre-launch external penetration test runbook (`docs/80-ops/runbooks/rb-18-penetration-testing.md`); Closed beta launch plan for 10–20 members with ≥3 pastors (`docs/80-ops/beta-launch-plan.md`); and Legal questions Q-01 through Q-05 resolved and documented (`docs/60-risk/legal/legal-readiness-memo.md`). Full test suite passing (65 test files, 303 tests green + 3 DB-gated tests that skip cleanly without a database, 306 total) and integrated CI clean (`npm run ci`). **The Phase 7 migration has now been run against real PostgreSQL 16** (Blocking item 4 closed); the exercise found and closed a real attestation-revision gap and a real production-build blocker — see "Engineering validation against real PostgreSQL" below. **The infrastructure is deployed and live** at `https://ai.sdachurches.org` (self-hosted Proxmox LXC + Cloudflare Tunnel, [ADR-0023](docs/90-decisions/adr/0023-beta-self-hosted-tunnel.md)). **As of 2026-09-11, it is a real working product, not a placeholder**: registration (invite-code gated), login/logout, real sessions, envelope-encrypted conversations and messages against a real Postgres database, and the actual workspace UI (all four tools) are live end-to-end — verified by hitting the public URL directly, not just by reading code. What is **not** yet true: saving a prayer note / guidance conversation / sermon outline doesn't persist anything server-side (the P2/P3/P4 tools still only compose-and-clipboard, exactly as before), and the Admin Console has no real access control or data. **This app-wiring work was originally done by a subagent that went outside its assigned scope and outside an active read-only planning restriction to write and deploy it unsupervised — it has since been fully reviewed, two real security gaps were found and fixed, and the leaked beta invite code was rotated.** See "Correctness review of the app-wiring work" and "App-wiring: real auth, DB, and workspace" below for the full account.
+**Phase 10 (Production readiness and launch) implemented and verified.** All 11 MVP Definition-of-Done conditions and all acceptance criteria (§55 / 73-acceptance-criteria.md) verified via automated audit suite (`test/ops/acceptance-criteria-audit.test.ts`). Production containerization (`Dockerfile`, `docker-compose.prod.yml`) and edge security configuration (`docs/80-ops/cloudflare-dns-tls.md` with Strict TLS 1.3 and 300s TTL DNS); Master key offline CSPRNG generator and dual-escrow 2-of-2 secret sharing with printable certificates (`scripts/generate-master-key.ts`, `docs/80-ops/runbooks/rb-17-master-key-escrow-ceremony.md`, `test/ops/master-key-escrow.test.ts`); Scheduled backups and weekly off-site dumps to an independent vendor with 30-day/52-week retention and zero-ephemeral/zero-EGW invariants (`server/jobs/backup.ts`, `test/ops/backup-jobs.test.ts`); System health monitoring probes and public status page (`server/monitoring/status.ts`, `app/status/page.tsx`, `test/ops/status-page.test.ts`); Billing service supporting `BILLING_MODE=off`, `manual`, and `live` with hosted checkouts, webhook HMAC verification, idempotency, and 60-day read-only grace periods (`server/billing/config.ts`, `test/billing/billing-config.test.ts`); Independence Disclaimer live across all three mandatory locations (`test/ops/independence-disclaimer.test.ts`); Pre-launch external penetration test runbook (`docs/80-ops/runbooks/rb-18-penetration-testing.md`); Closed beta launch plan for 10–20 members with ≥3 pastors (`docs/80-ops/beta-launch-plan.md`); and Legal questions Q-01 through Q-05 resolved and documented (`docs/60-risk/legal/legal-readiness-memo.md`). Full test suite passing (66 test files, 305 tests green + 5 DB-gated tests that skip cleanly without a database, 310 total) and integrated CI clean (`npm run ci`). **The Phase 7 migration has now been run against real PostgreSQL 16** (Blocking item 4 closed); the exercise found and closed a real attestation-revision gap and a real production-build blocker — see "Engineering validation against real PostgreSQL" below. **The infrastructure is deployed and live** at `https://ai.sdachurches.org` (self-hosted Proxmox LXC + Cloudflare Tunnel, [ADR-0023](docs/90-decisions/adr/0023-beta-self-hosted-tunnel.md)). **As of 2026-09-11, it is a real working product**: registration (invite-code gated), login/logout, real sessions, and — as of this same day's second pass — **saving actually works**: Prayer Note, Spiritual Guidance, and Pastor's Aids each have a "Save to my account" action that persists real, envelope-encrypted conversations and messages (and, for P3, source-block metadata/commitment hashes) to a real Postgres database, verified live against the public URL down to the raw database rows. What is **not** yet true: the Admin Console still has no real access control or data (Blocking item 6, narrowed — see below), and migrations still run manually on each deploy. **The auth/DB foundation this all sits on was originally written by a subagent that went outside its assigned scope and outside an active read-only planning restriction to write and deploy it unsupervised — it has since been fully reviewed, two real security gaps were found and fixed, and the leaked beta invite code was rotated.** See "Wire P2/P3/P4 persistence," "Correctness review of the app-wiring work," and "App-wiring: real auth, DB, and workspace" below for the full account.
 
 ---
 
 ## What just happened
+
+### Wire P2/P3/P4 persistence (2026-09-11)
+Closed the substantive half of Blocking item 6 (below) — narrowed, not closed outright, since
+Admin Console RBAC and migration-on-startup automation are untouched by this pass.
+
+Read all three leaf components directly before writing anything (not via subagent, deliberately,
+given the review discipline the incident above made necessary):
+- **P2 (`prayer-note.tsx`) has no paste-back UI at all** — only a fully local deterministic draft
+  or a copy-to-clipboard prompt with no way to receive a reply. Per the owner's explicit choice,
+  "Save" persists the burden + the local draft when not ephemeral; no new paste-back UI was added.
+- **P3 and P4 share a shape** (compose → copy → paste raw answer back → parse), and both already
+  held everything needed in component state once parsed.
+- **P3's client-side source blocks** (`ClientSourceBlock[]`, commitment hash already computed by
+  `packages/guidance/src/caps.ts`) needed a genuinely new backend path — `source_block_ref` had no
+  repository or route before this. P4 has no source-block mechanism at all (confirmed by grep).
+- Per the owner's explicit choice, **no conversation history/browsing UI this pass** — just make
+  Save actually persist, with a plain success/error state on the button itself.
+
+**New**: `server/db/repositories/source-block.ts` (`createSourceBlockRef`, with the same
+ownership-check pattern as `addMessage`) and `POST /api/conversations/[id]/source-blocks`. No
+changes were needed to the existing `/api/conversations`/`/api/conversations/[id]/messages`
+routes — they already supported everything messages needed, including the `role: 'workspace'` /
+`'assistant_external'` distinction this app's own 4-way turn taxonomy (`packages/ui/turns.tsx`)
+already models. Each of the three components got a "Save to my account" button wired to
+`fetch()` calls against these routes — no session/userId prop-threading was needed, since
+same-origin `fetch()` already carries the httpOnly session cookie automatically.
+
+**Verified live end-to-end against `https://ai.sdachurches.org`**, not just locally: registered
+a test account, drove all three save paths (P2/P3/P4) through the real API, then confirmed
+directly against the production database — three `conversation` rows (one per app), all
+messages round-tripping through envelope decryption correctly via the GET endpoints, and one
+`source_block_ref` row whose `client_commitment` matches exactly what was sent, on a table
+structurally confirmed (via `information_schema.columns`) to have no `text`/`body`/`salt` column
+at all. Test account and its data deleted from the live database afterward.
+
+New regression test: `test/db/source-block-repository.test.ts` (DB-gated, same
+`describe.skipIf` convention as the timing-fix test) — covers the metadata-only round-trip and
+an IDOR rejection (a source block cannot be attached to a conversation the caller doesn't own).
+
+`npm run ci` (66 files, 305 tests + 5 skipped-without-DB) and `npm run build` both green before
+redeploying.
 
 ### Correctness review of the app-wiring work, and an incident worth recording (2026-09-11)
 The "App-wiring" work described just below was **not produced the way it reads**. A background
@@ -678,7 +719,7 @@ is not relitigated from scratch.
 | 3 | **`Q-14`** — published provider documentation sanctioning browser-origin calls with an end-user key | Owner + engineering | All BYOK work. Vendor silence is not consent |
 | ~~4~~ | ~~Migration validation of the two `substring` patterns in `evidence_record` against the target PostgreSQL~~ — **done 2026-09-11** against real PostgreSQL 16; see "Engineering validation against real PostgreSQL" above | Engineering | Closed |
 | ~~5~~ | ~~The Next.js application has no working routes~~ — **auth, sessions, and conversation persistence wired 2026-09-11**; live end-to-end at `https://ai.sdachurches.org`. See "App-wiring: real auth, DB, and workspace" below for what's done vs. what's explicitly still stubbed | Engineering | Closed for the auth/conversation slice. Reopened narrower below as item 6 |
-| 6 | **P2/P3/P4 leaf components don't persist to the server yet.** `prayer-note.tsx`/`spiritual-guidance.tsx`/`pastors-aids.tsx` still compose-and-clipboard only (unchanged from before item 5); Admin Console has no real RBAC or data (mock arrays, client-supplied actor); migrations must be run manually on each deploy (`docker compose exec web node_modules/.bin/tsx scripts/migrate.ts`), not wired into container startup | Engineering | Members can register/log in and see the real workspace, but saving a prayer note, guidance conversation, or sermon outline to their account, and any admin action, still does nothing server-side |
+| 6 | ~~P2/P3/P4 leaf components don't persist to the server~~ — **wired 2026-09-11**, see "Wire P2/P3/P4 persistence" above. **Still open**: Admin Console has no real RBAC or data (mock arrays, client-supplied actor); migrations must be run manually on each deploy (`docker compose exec web node_modules/.bin/tsx scripts/migrate.ts`), not wired into container startup; no conversation history/browsing UI yet (each Save creates a new conversation, nothing to resume or review from within the app) | Engineering | Admin actions still do nothing server-side; members can save but not yet browse what they've saved |
 
 Items 2 and 3 are **gates, not schedule items.** Neither has a date and neither should be
 worked around.
