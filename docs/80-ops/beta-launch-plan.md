@@ -21,7 +21,7 @@ The closed beta is scoped to **10–20 participants** to validate workflows, usa
 
 ## 2. Beta Environment & Configuration
 
-- **Host:** `https://beta.sda-ai-workspace.org` (isolated staging environment).
+- **Host:** `https://ai.sdachurches.org` — self-hosted Proxmox LXC behind a Cloudflare Tunnel ([ADR-0023](../90-decisions/adr/0023-beta-self-hosted-tunnel.md)), isolated from any future production host.
 - **Billing Mode:** `BILLING_MODE=off`. All beta participants receive full tier entitlements (Member or Pastor) at zero cost with no credit card required (AC-M1).
 - **Registration:** Restricted via invitation code (`REGISTRATION_OPEN=false`).
 - **Feature Flags:** `byok_enabled=false`, `maintenance_mode=false`.

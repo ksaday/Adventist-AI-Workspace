@@ -127,7 +127,7 @@ A revision that only improves things is usually hiding something. Three costs:
 
 | Item | Where | Needed from |
 |---|---|---|
-| Stage 0 approver identity — the decision record carries `[VERIFY]` | [ADR-0022](adr/0022-no-server-side-source-text.md) | Owner |
+| ~~Stage 0 approver identity — the decision record carried `[VERIFY]`~~ — filled 2026-09-11 | [ADR-0022](adr/0022-no-server-side-source-text.md) | Owner |
 | `Q-06` — per-host terms review before the reachability probe may be enabled | [91-open-questions](91-open-questions.md) | Owner + counsel |
 | `Q-14` — published provider sanction for browser-origin calls with an end-user key | [91-open-questions](91-open-questions.md) | Owner + engineering |
-| Migration validation of the two `substring` patterns against the target PostgreSQL | [Database §8](../20-data/21-database-design.md) | Engineering, at first migration |
+| ~~Migration validation of the two `substring` patterns against the target PostgreSQL~~ — done 2026-09-11 against real PostgreSQL 16 | [Database §8](../20-data/21-database-design.md) | Engineering, at first migration |

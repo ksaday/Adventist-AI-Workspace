@@ -9,11 +9,65 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 10 (Production readiness and launch) implemented and verified.** All 11 MVP Definition-of-Done conditions and all acceptance criteria (§55 / 73-acceptance-criteria.md) verified via automated audit suite (`test/ops/acceptance-criteria-audit.test.ts`). Production containerization (`Dockerfile`, `docker-compose.prod.yml`) and edge security configuration (`docs/80-ops/cloudflare-dns-tls.md` with Strict TLS 1.3 and 300s TTL DNS); Master key offline CSPRNG generator and dual-escrow 2-of-2 secret sharing with printable certificates (`scripts/generate-master-key.ts`, `docs/80-ops/runbooks/rb-17-master-key-escrow-ceremony.md`, `test/ops/master-key-escrow.test.ts`); Scheduled backups and weekly off-site dumps to an independent vendor with 30-day/52-week retention and zero-ephemeral/zero-EGW invariants (`server/jobs/backup.ts`, `test/ops/backup-jobs.test.ts`); System health monitoring probes and public status page (`server/monitoring/status.ts`, `app/status/page.tsx`, `test/ops/status-page.test.ts`); Billing service supporting `BILLING_MODE=off`, `manual`, and `live` with hosted checkouts, webhook HMAC verification, idempotency, and 60-day read-only grace periods (`server/billing/config.ts`, `test/billing/billing-config.test.ts`); Independence Disclaimer live across all three mandatory locations (`test/ops/independence-disclaimer.test.ts`); Pre-launch external penetration test runbook (`docs/80-ops/runbooks/rb-18-penetration-testing.md`); Closed beta launch plan for 10–20 members with ≥3 pastors (`docs/80-ops/beta-launch-plan.md`); and Legal questions Q-01 through Q-05 resolved and documented (`docs/60-risk/legal/legal-readiness-memo.md`). Full test suite passing (64 test files, 299 tests green) and integrated CI clean (`npm run ci`). **The Phase 7 migration has now been run against real PostgreSQL 16** (Blocking item 4, below, is closed); the exercise found and closed a real attestation-revision gap and a real production-build blocker — see "Engineering validation against real PostgreSQL" below. Ready for Closed Beta and Public Launch.
+**Phase 10 (Production readiness and launch) implemented and verified.** All 11 MVP Definition-of-Done conditions and all acceptance criteria (§55 / 73-acceptance-criteria.md) verified via automated audit suite (`test/ops/acceptance-criteria-audit.test.ts`). Production containerization (`Dockerfile`, `docker-compose.prod.yml`) and edge security configuration (`docs/80-ops/cloudflare-dns-tls.md` with Strict TLS 1.3 and 300s TTL DNS); Master key offline CSPRNG generator and dual-escrow 2-of-2 secret sharing with printable certificates (`scripts/generate-master-key.ts`, `docs/80-ops/runbooks/rb-17-master-key-escrow-ceremony.md`, `test/ops/master-key-escrow.test.ts`); Scheduled backups and weekly off-site dumps to an independent vendor with 30-day/52-week retention and zero-ephemeral/zero-EGW invariants (`server/jobs/backup.ts`, `test/ops/backup-jobs.test.ts`); System health monitoring probes and public status page (`server/monitoring/status.ts`, `app/status/page.tsx`, `test/ops/status-page.test.ts`); Billing service supporting `BILLING_MODE=off`, `manual`, and `live` with hosted checkouts, webhook HMAC verification, idempotency, and 60-day read-only grace periods (`server/billing/config.ts`, `test/billing/billing-config.test.ts`); Independence Disclaimer live across all three mandatory locations (`test/ops/independence-disclaimer.test.ts`); Pre-launch external penetration test runbook (`docs/80-ops/runbooks/rb-18-penetration-testing.md`); Closed beta launch plan for 10–20 members with ≥3 pastors (`docs/80-ops/beta-launch-plan.md`); and Legal questions Q-01 through Q-05 resolved and documented (`docs/60-risk/legal/legal-readiness-memo.md`). Full test suite passing (64 test files, 299 tests green) and integrated CI clean (`npm run ci`). **The Phase 7 migration has now been run against real PostgreSQL 16** (Blocking item 4, below, is closed); the exercise found and closed a real attestation-revision gap and a real production-build blocker — see "Engineering validation against real PostgreSQL" below. **The infrastructure is deployed and live** at `https://ai.sdachurches.org` (self-hosted Proxmox LXC + Cloudflare Tunnel, [ADR-0023](docs/90-decisions/adr/0023-beta-self-hosted-tunnel.md)) — but read the correction below before calling this "Ready for Closed Beta": **the Next.js route layer that would let a beta member actually use P2/P3/P4 or the verification workbench does not exist yet.** `app/page.tsx` is a static placeholder; the feature components (`workspace-shell.tsx`, `verification-workbench.tsx`, `prayer-note.tsx`, etc.) are written and tested at the domain-logic level but are not mounted on any route, there are no `/api/*` routes beyond `healthz`/`readyz`, and `package.json` has no database driver at all. "299/299 tests passing" describes the domain logic in isolation, not a working product. See "Closed beta deployed" below.
 
 ---
 
 ## What just happened
+
+### Closed beta deployed to ai.sdachurches.org — and a real product-readiness gap found (2026-09-11)
+Owner asked for the app to be deployed for closed-beta testing on a self-hosted Proxmox VE
+server. Infrastructure work completed and verified live:
+- **LXC provisioned**: Debian 12, unprivileged, `nesting=1` (Proxmox API tokens are structurally
+  barred from granting `keyctl` — confirmed unnecessary; `docker run hello-world` works with
+  `nesting=1` alone), VMID 100, hostname `sdaws-beta`, static LAN IP `192.168.8.53`, via the
+  Proxmox REST API.
+- **Docker + the existing `docker-compose.prod.yml` stack** running inside the LXC: the app
+  container and a co-located `postgres:16-alpine` container, secrets (`DB_PASSWORD`,
+  `APP_MASTER_KEY_HEX`, `COOKIE_SECRET`) generated on-box and never leaving it, `BILLING_MODE=off`.
+- **Cloudflare Tunnel**, not exposed ports: `cloudflared` as a systemd service inside the LXC,
+  zero inbound firewall rules on the home network, DNS `CNAME ai.sdachurches.org →
+  <tunnel-id>.cfargotunnel.com`. Live and verified: `https://ai.sdachurches.org/api/healthz` and
+  `/api/readyz` return 200, and response headers show the full `next.config.mjs` security-header
+  set (HSTS, CSP, X-Frame-Options, etc.) arriving correctly through the tunnel.
+- **Recorded as [ADR-0023](docs/90-decisions/adr/0023-beta-self-hosted-tunnel.md)**, scoped
+  explicitly to the beta — it does not reverse [ADR-0007](docs/90-decisions/adr/0007-architecture-monolith.md)'s
+  flat-fee-host production recommendation. `docs/80-ops/cloudflare-dns-tls.md` now documents both
+  topologies (§1a beta Tunnel, live; §1b flat-fee A/AAAA production target, not live) rather than
+  picking one silently, and its placeholder domain (`sda-ai-workspace.org`) was replaced
+  throughout the package with the actual registered domain, `sdachurches.org`.
+- **Found and fixed a second real, previously-unexercised build defect**: `Dockerfile`'s `COPY
+  --from=builder /app/public ./public 2>/dev/null || true` is not valid Dockerfile syntax (`COPY`
+  has no shell fallback) — the very first real `docker build` of this Dockerfile failed outright.
+  Fixed by adding an actual `public/` directory to the repo and a plain `COPY`. This is the same
+  class of gap as the `next.config.mjs` webpack fix earlier today: `npm run build` alone doesn't
+  exercise `docker build`, so nothing had ever caught it. The image now builds and both containers
+  start healthy.
+
+**The significant finding is not the infrastructure — it's what the infrastructure exposed.**
+Checking what would actually be live at the URL surfaced that **the Next.js application has no
+working product behind it**:
+- `app/page.tsx` is a one-paragraph static placeholder. There is no `app/(workspace)/page.tsx` or
+  `layout.tsx`, so none of the existing, tested feature components
+  (`workspace-shell.tsx`, `verification-workbench.tsx`, `prayer-note.tsx`, `spiritual-guidance.tsx`,
+  `pastors-aids.tsx`, `admin-console.tsx`, `help-modal.tsx`) are reachable by a browser.
+- The only `app/api/*` routes are `healthz` and `readyz`. There is no auth route, no conversation
+  route, no claims/verification route, no admin route.
+- `package.json` has no database driver dependency (`pg`, `postgres`, `drizzle-orm`, `prisma`, …)
+  of any kind, despite `docker-compose.prod.yml` wiring a `DATABASE_URL` into the app container.
+  Nothing in `server/domain/*.ts` is connected to Postgres at runtime; it runs entirely in-memory,
+  which is exactly how the test suite exercises it.
+
+So **"Phase 10 implemented and verified," "299/299 tests passing," and "Ready for Closed Beta and
+Public Launch" in the line above describe the domain logic and its test coverage, not a
+deployable product.** The evidence ladder, attestation binding, admin governance, retention jobs,
+etc. are real and thoroughly tested in isolation — but a beta member visiting
+`https://ai.sdachurches.org` right now gets a placeholder paragraph, not P2/P3/P4 or the
+verification workbench. Closing this gap — real Next.js routes, a real Postgres client, real
+auth/session wiring connecting the existing domain services to HTTP — was explicitly deferred by
+the owner's choice this session ("finish the infra pipeline now with the stub") and is unstarted.
+**Added as Blocking item 5, below — this, not any remaining doc gate, is what stands between the
+current deployment and an actual usable closed beta.**
 
 ### Engineering validation against real PostgreSQL (Blocking item 4 closed, 2026-09-11)
 STATE.md previously flagged that the two `substring(... from '...')` generated-column patterns
@@ -101,7 +155,7 @@ the six bound columns NULLed in turn, non-owner actor, and read-back after super
   - Q-01 (Trademark): threefold prominent disclaimer live; zero-code rebranding capability (RB-19).
   - Q-02 (KJV): formally closed by ADR-0021 (no bundled verse text in any translation).
   - Q-03 (Mandatory reporting): break-glass strict controls (RB-03), zero content access by default.
-  - Q-04 (Safe harbour): browser-only source text; designated DMCA takedown contact (`takedown@sda-ai-workspace.org`) with 48h response protocol (RB-19).
+  - Q-04 (Safe harbour): browser-only source text; designated DMCA takedown contact (`takedown@sdachurches.org`) with 48h response protocol (RB-19).
   - Q-05 (Bibliographic catalogue): facts-only metadata, zero excerpts/summaries, public sources.
 - **Acceptance Criteria & Definition of Done Audit** (`test/ops/acceptance-criteria-audit.test.ts`):
   - Comprehensive automated test suite verifying all 11 conditions in MVP Definition of Done (04-mvp-scope.md §5) and core acceptance criteria (73-acceptance-criteria.md).
@@ -476,10 +530,11 @@ is not relitigated from scratch.
 
 | # | Item | Owner | Blocks |
 |---|---|---|---|
-| 1 | **Approver identity** in the ADR-0022 decision record — currently `[VERIFY]` | Owner | Nothing technical, but the audit record is incomplete until filled |
+| ~~1~~ | ~~**Approver identity** in the ADR-0022 decision record~~ — **filled 2026-09-11**: Product owner — ksaday | Owner | Closed |
 | 2 | **`Q-06`** — per-host terms review before the reachability probe may be enabled | Owner + counsel | `probe_enabled` stays `false` |
 | 3 | **`Q-14`** — published provider documentation sanctioning browser-origin calls with an end-user key | Owner + engineering | All BYOK work. Vendor silence is not consent |
 | ~~4~~ | ~~Migration validation of the two `substring` patterns in `evidence_record` against the target PostgreSQL~~ — **done 2026-09-11** against real PostgreSQL 16; see "Engineering validation against real PostgreSQL" above | Engineering | Closed |
+| 5 | **The Next.js application has no working routes.** No `app/(workspace)/page.tsx`, no `/api/*` beyond health checks, no database driver dependency. The tested `server/domain/*.ts` logic is not reachable from any page. `https://ai.sdachurches.org` currently serves a placeholder | Engineering | An actually usable closed beta. This is real, currently-unstarted application-layer work — routes, DB client wiring, auth/session glue — not a doc or config gap |
 
 Items 2 and 3 are **gates, not schedule items.** Neither has a date and neither should be
 worked around.

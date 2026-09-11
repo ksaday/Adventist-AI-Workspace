@@ -15,7 +15,7 @@ This memorandum documents the operational and architectural resolutions for lega
 | **Q-01** | Trademark & project naming ("SDA" / "Seventh-day Adventist") | **RESOLVED** | Prominent threefold Independence Disclaimer live in UI footer, prompt output header, and Terms of Service (SR-D4). Application naming isolated to message catalogue for instant zero-code rebranding if requested (RB-19). |
 | **Q-02** | KJV text redistribution & UK Royal Prerogative | **CLOSED** | Settled by [ADR-0021](../../90-decisions/adr/0021-no-bundled-verse-text.md). Risk eliminated entirely: **no Bible verse text is bundled**, in any translation. Deterministic reference-structure validation only. |
 | **Q-03** | Mandatory reporting obligations under emergency break-glass | **RESOLVED** | Break-glass strictly limited by PR-ADM-03 and [RB-03](../../80-ops/runbooks/rb-03-break-glass-audit.md). Operators see no conversation text by default. Any emergency discovery requires counsel engagement within 24 hours under documented jurisdictional reporting guidelines. |
-| **Q-04** | Safe-harbour framework & user-supplied excerpts | **RESOLVED** | We do not collect, ingest, host, index, or hold EGW text as a source. Member-supplied source text is browser-only and never reaches our server. For message bodies containing user quotes, a designated DMCA agent is published (`takedown@sda-ai-workspace.org`) with a 48-hour response protocol ([RB-19](../../80-ops/82-operations-plan.md)). |
+| **Q-04** | Safe-harbour framework & user-supplied excerpts | **RESOLVED** | We do not collect, ingest, host, index, or hold EGW text as a source. Member-supplied source text is browser-only and never reaches our server. For message bodies containing user quotes, a designated DMCA agent is published (`takedown@sdachurches.org`) with a 48-hour response protocol ([RB-19](../../80-ops/82-operations-plan.md)). |
 | **Q-05** | Compilation & database rights in bibliographic catalogue | **RESOLVED** | The catalogue is strictly factual metadata (titles, abbreviations, page counts, publication dates) compiled from public bibliographic records. Zero excerpt text, summaries, or editorial descriptions are included. |
 
 ---
@@ -50,7 +50,7 @@ This memorandum documents the operational and architectural resolutions for lega
 - **Analysis:** Digital Millennium Copyright Act (17 U.S.C. § 512) and EU eCommerce Directive Article 14 provide safe-harbour protections for online service providers hosting user-generated materials at the direction of users.
 - **Architectural Safeguards:**
   1. **Browser-Only Supply Channel:** Member-supplied source text never reaches our server; the supply channel is browser-only (SR-D1, ADR-0022).
-  2. **Published Takedown Contact:** A registered agent email (`takedown@sda-ai-workspace.org`) is published in the Terms of Service.
+  2. **Published Takedown Contact:** A registered agent email (`takedown@sdachurches.org`) is published in the Terms of Service.
   3. **Comply First Protocol ([RB-19](../../80-ops/82-operations-plan.md)):** Any bona fide notice of copyright infringement will be acknowledged within 48 hours and the disputed user-stored content disabled immediately.
 
 ### 2.5 Q-05 · Bibliographic Catalogue Compilation

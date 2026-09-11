@@ -11,7 +11,7 @@ rather than inferred from its consequences.
 ```
 Decision ID    SDAWS-DEC-2026-09-09-01
 Date           2026-09-09
-Decided by     Product owner  [VERIFY] — name/handle to be filled by the owner
+Decided by     Product owner — ksaday
 Question put   SR-D1 says no EGW text reaches the server. A pasted AI answer stored in
                message.body_enc can contain a purported EGW quotation. How should the
                rule be scoped so it is actually true?

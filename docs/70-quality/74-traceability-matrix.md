@@ -132,7 +132,7 @@ proves it. `AC-*` refer to [Acceptance Criteria](73-acceptance-criteria.md); `PR
 | § | Topic | Addressed in |
 |---|---|---|
 | 56 | 37 required deliverables | [README index](../../README.md#document-index-mandated-deliverables-56) — all present |
-| 57 | ADRs for the listed decisions | [adr/](../90-decisions/adr/) — 22 records, three of them superseding; coverage table in [ADR index](../90-decisions/adr/README.md) |
+| 57 | ADRs for the listed decisions | [adr/](../90-decisions/adr/) — 23 records, three of them superseding; coverage table in [ADR index](../90-decisions/adr/README.md) |
 | 58 | At least three architectures evaluated | [Architecture Options](../10-architecture/11-architecture-options.md) — four |
 | 59 | Cost decision matrix | [Cost Model §2](../80-ops/81-cost-model.md) |
 
@@ -170,7 +170,7 @@ proves it. `AC-*` refer to [Acceptance Criteria](73-acceptance-criteria.md); `PR
 | Sections with a stated requirement ID | 52 (the remainder are meta-instructions about the design process itself) |
 | Sections with an acceptance criterion or automated proof | 47 |
 | Mandated deliverables (§56) present | **37 of 37** |
-| ADR topics required (§57) | **15 of 15**, across 22 records |
+| ADR topics required (§57) | **15 of 15**, across 23 records |
 | Architectures evaluated (§58 requires ≥3) | **4** |
 
 ---

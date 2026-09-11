@@ -10,7 +10,7 @@ This runbook specifies the scope, rules of engagement, test matrix, and sign-off
 
 | Property | Specification |
 |---|---|
-| **Target Systems** | Production staging environment (`https://staging.sda-ai-workspace.org`), API routes, database instances |
+| **Target Systems** | Production staging environment (`https://staging.sdachurches.org`), API routes, database instances |
 | **Assessment Type** | Grey-box and Black-box external penetration testing |
 | **Test Window** | 5 business days prior to public launch |
 | **Exclusions** | Third-party AI providers (OpenAI, Anthropic, Google), payment gateway origins |

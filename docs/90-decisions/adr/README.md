@@ -32,6 +32,7 @@ earlier decisions; see [the change log](../94-revision-1-1-change-log.md).
 | [0020](0020-byok-conditional-on-official-support.md) | BYOK conditional on published provider support | Accepted · supersedes 0006 |
 | [0021](0021-no-bundled-verse-text.md) | No Bible verse text is bundled or shipped | Accepted · supersedes 0012 |
 | [0022](0022-no-server-side-source-text.md) | The source-supply channel is browser-only | Accepted |
+| [0023](0023-beta-self-hosted-tunnel.md) | Closed beta runs self-hosted, behind a Cloudflare Tunnel | Accepted |
 
 ## Coverage of the mandated ADR topics (§57)
 

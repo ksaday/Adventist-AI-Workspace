@@ -113,7 +113,7 @@ and finally [Implementation Plan](docs/90-decisions/93-implementation-plan.md).
 | 28 | Backup / Recovery Plan | [80-ops/84-backup-recovery-plan.md](docs/80-ops/84-backup-recovery-plan.md) |
 | 29 | Monitoring Plan | [80-ops/83-monitoring-plan.md](docs/80-ops/83-monitoring-plan.md) |
 | 30 | Disaster Recovery Plan | [80-ops/85-disaster-recovery-plan.md](docs/80-ops/85-disaster-recovery-plan.md) |
-| 31 | ADRs | [90-decisions/adr/](docs/90-decisions/adr/) (22 records) |
+| 31 | ADRs | [90-decisions/adr/](docs/90-decisions/adr/) (23 records) |
 | 32 | MVP Scope | [00-overview/04-mvp-scope.md](docs/00-overview/04-mvp-scope.md) |
 | 33 | Post-MVP Roadmap | [00-overview/05-post-mvp-roadmap.md](docs/00-overview/05-post-mvp-roadmap.md) |
 | 34 | Open Questions | [90-decisions/91-open-questions.md](docs/90-decisions/91-open-questions.md) |
