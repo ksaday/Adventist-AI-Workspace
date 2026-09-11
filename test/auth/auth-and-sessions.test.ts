@@ -44,6 +44,15 @@ describe('Auth & Session Management (Phase 1)', () => {
     expect(truncateIpToPrefix('2001:0db8:85a3:0000:0000:8a2e:0370:7334')).toBe('2001:0db8:85a3::/48');
   });
 
+  it('correctly truncates "::" zero-compressed IPv6 addresses (the form real addresses actually take)', () => {
+    // A naive split(':') on these previously produced malformed output like '::1::/48',
+    // which Postgres's inet column type rejects outright — found by a real registration
+    // request from localhost (curl -> ::1), not by the golden-file test above.
+    expect(truncateIpToPrefix('::1')).toBe('0:0:0::/48');
+    expect(truncateIpToPrefix('fe80::1')).toBe('fe80:0:0::/48');
+    expect(truncateIpToPrefix('2001:db8::8a2e:370:7334')).toBe('2001:db8:0::/48');
+  });
+
   it('parses User-Agent to generic browser family, avoiding fingerprinting', () => {
     const macChromeUA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36';
     expect(parseUserAgentFamily(macChromeUA)).toBe('Chrome on macOS');

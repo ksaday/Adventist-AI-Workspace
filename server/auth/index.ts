@@ -32,6 +32,22 @@ export interface UserRecord {
 }
 
 /**
+ * Expands "::" zero-compression in an IPv6 address to its full 8-group form.
+ * Needed because a naive split(':') on a compressed address (e.g. '::1',
+ * 'fe80::1' — the form virtually every real IPv6 address takes) does not
+ * produce 8 groups, and previously produced malformed output like '::1::/48'.
+ */
+function expandIpv6Groups(ip: string): string[] {
+  const addr = ip.split('%')[0]; // strip a zone id, e.g. fe80::1%eth0
+  if (!addr.includes('::')) return addr.split(':');
+  const [head, tail] = addr.split('::');
+  const headParts = head ? head.split(':') : [];
+  const tailParts = tail ? tail.split(':') : [];
+  const missing = Math.max(0, 8 - headParts.length - tailParts.length);
+  return [...headParts, ...Array(missing).fill('0'), ...tailParts];
+}
+
+/**
  * Truncates an IP address to privacy-preserving subnet (/24 for IPv4, /48 for IPv6).
  */
 export function truncateIpToPrefix(ip: string): string {
@@ -43,8 +59,8 @@ export function truncateIpToPrefix(ip: string): string {
     }
   }
   if (ip.includes(':')) {
-    const parts = ip.split(':');
-    return `${parts.slice(0, 3).join(':')}::/48`;
+    const groups = expandIpv6Groups(ip);
+    return `${groups.slice(0, 3).join(':')}::/48`;
   }
   return '0.0.0.0/24';
 }

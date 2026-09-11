@@ -10,12 +10,25 @@
  *    and not an integrity guarantee.
  */
 
-import crypto from 'node:crypto';
 import type {
   ClientSourceBlock,
   SourceBlockKind,
   SourceBlockRefRecord,
 } from './types';
+import { sha256Hex, bytesToHex, hexToBytes } from '../../compose/src/sha256.js';
+
+/** crypto.randomUUID and crypto.getRandomValues are on globalThis in both the
+ * browser and Node 18+ — this module must never import node:crypto, since it
+ * runs in the browser (see file header). */
+function randomUUID(): string {
+  return globalThis.crypto.randomUUID();
+}
+
+function randomHex(byteLength: number): string {
+  const bytes = new Uint8Array(byteLength);
+  globalThis.crypto.getRandomValues(bytes);
+  return bytesToHex(bytes);
+}
 
 export const MAX_BLOCK_CHAR_COUNT = 8000;
 export const MAX_CONVERSATION_CHAR_COUNT = 40000;
@@ -87,14 +100,14 @@ export function computeClientCommitment(normalisedText: string, saltHex?: string
   salt: string;
   commitment: string;
 } {
-  const salt = saltHex ?? crypto.randomBytes(32).toString('hex');
-  const saltBuf = Buffer.from(salt, 'hex');
-  const textBuf = Buffer.from(normalisedText, 'utf8');
+  const salt = saltHex ?? randomHex(32);
+  const saltBytes = hexToBytes(salt);
+  const textBytes = new TextEncoder().encode(normalisedText);
+  const combined = new Uint8Array(saltBytes.length + textBytes.length);
+  combined.set(saltBytes, 0);
+  combined.set(textBytes, saltBytes.length);
 
-  const commitment = crypto
-    .createHash('sha256')
-    .update(Buffer.concat([saltBuf, textBuf]))
-    .digest('hex');
+  const commitment = sha256Hex(combined);
 
   return { salt, commitment };
 }
@@ -133,7 +146,7 @@ export function createClientSourceBlock(params: {
   const { salt, commitment } = computeClientCommitment(normalised);
 
   return {
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     kind: params.kind,
     label: params.label,
     text: params.text, // Kept in client browser memory only

@@ -53,6 +53,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/server ./server
 COPY --from=builder --chown=nextjs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nextjs:nodejs /app/data ./data
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 
 USER nextjs
 

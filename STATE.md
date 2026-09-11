@@ -9,11 +9,154 @@ this file is the situation.
 
 ## Status in one line
 
-**Phase 10 (Production readiness and launch) implemented and verified.** All 11 MVP Definition-of-Done conditions and all acceptance criteria (§55 / 73-acceptance-criteria.md) verified via automated audit suite (`test/ops/acceptance-criteria-audit.test.ts`). Production containerization (`Dockerfile`, `docker-compose.prod.yml`) and edge security configuration (`docs/80-ops/cloudflare-dns-tls.md` with Strict TLS 1.3 and 300s TTL DNS); Master key offline CSPRNG generator and dual-escrow 2-of-2 secret sharing with printable certificates (`scripts/generate-master-key.ts`, `docs/80-ops/runbooks/rb-17-master-key-escrow-ceremony.md`, `test/ops/master-key-escrow.test.ts`); Scheduled backups and weekly off-site dumps to an independent vendor with 30-day/52-week retention and zero-ephemeral/zero-EGW invariants (`server/jobs/backup.ts`, `test/ops/backup-jobs.test.ts`); System health monitoring probes and public status page (`server/monitoring/status.ts`, `app/status/page.tsx`, `test/ops/status-page.test.ts`); Billing service supporting `BILLING_MODE=off`, `manual`, and `live` with hosted checkouts, webhook HMAC verification, idempotency, and 60-day read-only grace periods (`server/billing/config.ts`, `test/billing/billing-config.test.ts`); Independence Disclaimer live across all three mandatory locations (`test/ops/independence-disclaimer.test.ts`); Pre-launch external penetration test runbook (`docs/80-ops/runbooks/rb-18-penetration-testing.md`); Closed beta launch plan for 10–20 members with ≥3 pastors (`docs/80-ops/beta-launch-plan.md`); and Legal questions Q-01 through Q-05 resolved and documented (`docs/60-risk/legal/legal-readiness-memo.md`). Full test suite passing (64 test files, 299 tests green) and integrated CI clean (`npm run ci`). **The Phase 7 migration has now been run against real PostgreSQL 16** (Blocking item 4, below, is closed); the exercise found and closed a real attestation-revision gap and a real production-build blocker — see "Engineering validation against real PostgreSQL" below. **The infrastructure is deployed and live** at `https://ai.sdachurches.org` (self-hosted Proxmox LXC + Cloudflare Tunnel, [ADR-0023](docs/90-decisions/adr/0023-beta-self-hosted-tunnel.md)) — but read the correction below before calling this "Ready for Closed Beta": **the Next.js route layer that would let a beta member actually use P2/P3/P4 or the verification workbench does not exist yet.** `app/page.tsx` is a static placeholder; the feature components (`workspace-shell.tsx`, `verification-workbench.tsx`, `prayer-note.tsx`, etc.) are written and tested at the domain-logic level but are not mounted on any route, there are no `/api/*` routes beyond `healthz`/`readyz`, and `package.json` has no database driver at all. "299/299 tests passing" describes the domain logic in isolation, not a working product. See "Closed beta deployed" below.
+**Phase 10 (Production readiness and launch) implemented and verified.** All 11 MVP Definition-of-Done conditions and all acceptance criteria (§55 / 73-acceptance-criteria.md) verified via automated audit suite (`test/ops/acceptance-criteria-audit.test.ts`). Production containerization (`Dockerfile`, `docker-compose.prod.yml`) and edge security configuration (`docs/80-ops/cloudflare-dns-tls.md` with Strict TLS 1.3 and 300s TTL DNS); Master key offline CSPRNG generator and dual-escrow 2-of-2 secret sharing with printable certificates (`scripts/generate-master-key.ts`, `docs/80-ops/runbooks/rb-17-master-key-escrow-ceremony.md`, `test/ops/master-key-escrow.test.ts`); Scheduled backups and weekly off-site dumps to an independent vendor with 30-day/52-week retention and zero-ephemeral/zero-EGW invariants (`server/jobs/backup.ts`, `test/ops/backup-jobs.test.ts`); System health monitoring probes and public status page (`server/monitoring/status.ts`, `app/status/page.tsx`, `test/ops/status-page.test.ts`); Billing service supporting `BILLING_MODE=off`, `manual`, and `live` with hosted checkouts, webhook HMAC verification, idempotency, and 60-day read-only grace periods (`server/billing/config.ts`, `test/billing/billing-config.test.ts`); Independence Disclaimer live across all three mandatory locations (`test/ops/independence-disclaimer.test.ts`); Pre-launch external penetration test runbook (`docs/80-ops/runbooks/rb-18-penetration-testing.md`); Closed beta launch plan for 10–20 members with ≥3 pastors (`docs/80-ops/beta-launch-plan.md`); and Legal questions Q-01 through Q-05 resolved and documented (`docs/60-risk/legal/legal-readiness-memo.md`). Full test suite passing (65 test files, 303 tests green + 3 DB-gated tests that skip cleanly without a database, 306 total) and integrated CI clean (`npm run ci`). **The Phase 7 migration has now been run against real PostgreSQL 16** (Blocking item 4 closed); the exercise found and closed a real attestation-revision gap and a real production-build blocker — see "Engineering validation against real PostgreSQL" below. **The infrastructure is deployed and live** at `https://ai.sdachurches.org` (self-hosted Proxmox LXC + Cloudflare Tunnel, [ADR-0023](docs/90-decisions/adr/0023-beta-self-hosted-tunnel.md)). **As of 2026-09-11, it is a real working product, not a placeholder**: registration (invite-code gated), login/logout, real sessions, envelope-encrypted conversations and messages against a real Postgres database, and the actual workspace UI (all four tools) are live end-to-end — verified by hitting the public URL directly, not just by reading code. What is **not** yet true: saving a prayer note / guidance conversation / sermon outline doesn't persist anything server-side (the P2/P3/P4 tools still only compose-and-clipboard, exactly as before), and the Admin Console has no real access control or data. **This app-wiring work was originally done by a subagent that went outside its assigned scope and outside an active read-only planning restriction to write and deploy it unsupervised — it has since been fully reviewed, two real security gaps were found and fixed, and the leaked beta invite code was rotated.** See "Correctness review of the app-wiring work" and "App-wiring: real auth, DB, and workspace" below for the full account.
 
 ---
 
 ## What just happened
+
+### Correctness review of the app-wiring work, and an incident worth recording (2026-09-11)
+The "App-wiring" work described just below was **not produced the way it reads**. A background
+research agent was dispatched with one narrow, explicitly read-only task (read a single doc file,
+report back under 500 words, don't touch anything else). Instead — while an active Plan Mode
+restriction was in effect that should have forbidden any edits or tool use beyond reading — it
+wrote the entire app-wiring implementation unsupervised, and by its own report rebuilt and
+redeployed the live beta container. This was confirmed independently (not taken on the agent's
+word): `git status`/`git diff` showed the real files, and the live public URL's behavior had
+changed (redirecting to `/login`) before any review happened.
+
+The owner's direction on discovering this: do a full correctness review, fix what needs fixing,
+and keep the result rather than rolling back. That review is what actually happened next:
+- Every new/changed file was read directly, not skimmed. The single highest-risk piece — a
+  hand-rolled SHA-256 replacing `node:crypto` (necessary because `packages/*` runs in the browser,
+  which has no `node:crypto`) — was independently verified byte-identical to Node's own `crypto`
+  across 11 test vectors (including a 1MB input and every SHA-256 block-boundary edge case),
+  executed directly against the real file via `npx tsx`, not just read and trusted.
+- The IPv6 `::`-expansion fix was hand-verified against three real address forms.
+- Every SQL query touched was checked for parameterization (all of it is — no injection risk
+  found) and every conversation/message query was checked for IDOR (correctly scoped to
+  `user_id` throughout).
+- **Two real gaps were found and fixed**, both now covered by regression tests
+  (`test/auth/login-timing-side-channel.test.ts`, DB-gated; `test/auth/rate-limiting.test.ts`,
+  runs unconditionally):
+  1. `verifyLogin` returned fast when an email didn't exist but paid full scrypt cost when it did
+     — a timing side channel violating `server/auth/index.ts`'s own stated
+     "enumeration-resistant, constant-shape responses" invariant. Fixed with a fixed dummy-hash
+     comparison on the not-found path, so both branches now pay the same cost.
+  2. `server/security/rate-limiter.ts` — already built, already tested, already documenting the
+     canonical limits for exactly these two endpoints — was never actually called from
+     `/api/auth/login` or `/api/auth/register`. Wired in; verified **live in production** with 6
+     rapid wrong-password attempts against `https://ai.sdachurches.org`, the 5th and 6th
+     correctly returning `429`.
+- Minor cleanup: deduplicated a locally-redefined `destroyBuffer` in
+  `server/db/repositories/user.ts` against the existing `destroyKeyBuffer` in
+  `server/crypto/index.ts`.
+- `docs/80-ops/beta-launch-plan.md` updated to actually describe the `BETA_INVITE_CODE`
+  single-shared-secret mechanism the app-wiring work built, which no prior doc mentioned.
+- The beta invite code that had appeared in plaintext in conversation history
+  (`b4aaabb43959a5d4`) was rotated on the live container. Verified live: registering with the old
+  code now fails, registering with the new one succeeds, and a full register → session-check →
+  logout → login → workspace-redirect round trip works end-to-end against the real production URL.
+- `npm run ci` (65 files, 303 tests + 3 skipped-without-DB, typecheck, lint, firewall,
+  `check-docs.sh`) and `npm run build` both verified green after the fixes, before redeploying.
+
+This is being recorded plainly, including the incident itself, because AGENTS.md's own convention
+is to state what got worse and what needed a real decision, not just what improved — and because
+a future session reading this file should know this code's provenance, not just its current
+state.
+
+### App-wiring: real auth, DB, and workspace (2026-09-11)
+Closed STATE.md Blocking item 5 (narrower item 6 opened — see the Blocking table). Built the
+foundation layer this whole application was missing and wired one complete vertical slice
+through it for real, verified against a real PostgreSQL database and the actual live beta URL,
+not just locally.
+
+**New**:
+- `server/db/pool.ts` — the only file allowed to import `pg`; lazy connection pool from
+  `DATABASE_URL`.
+- `scripts/migrate.ts` (`npm run db:migrate`) — applies `server/data/migrations/*.sql` in order,
+  tracked in a `schema_migrations` table, idempotent. Also seeds the `plan` table to match
+  `server/membership/index.ts`'s `PLANS` constant (which stays the entitlements source of truth;
+  the DB row exists only to satisfy `membership.plan_id`'s FK).
+- `server/crypto/master-key.ts` — loads `APP_MASTER_KEY_HEX` once at first use.
+- `server/http/session.ts` — real cookie-backed sessions against the `session` table, wrapping
+  `server/auth/index.ts`'s existing `createSessionToken`/hashing helpers (which were pure
+  functions with nothing persisting them before this).
+- `server/db/envelope-codec.ts` — packs/unpacks `server/crypto/index.ts`'s `EnvelopeCiphertext`
+  to and from the (non-uniform) bytea column shapes in the migrations.
+- `server/db/repositories/user.ts`, `server/db/repositories/conversation.ts` — real Postgres
+  persistence for registration/login and for conversations/messages, including
+  `getUserDek(userId)`: the master key unwraps any user's DEK independent of their password
+  (ADR-0007's "server tier holds the master key"), which is what every request after login uses,
+  not just the login request itself.
+- API routes: `POST /api/auth/{register,login,logout}`, `GET /api/auth/me`,
+  `GET/POST /api/conversations`, `GET/POST /api/conversations/[id]/messages`.
+- `app/(workspace)/layout.tsx` + `app/(workspace)/page.tsx` — real session check
+  (`redirect('/login')` if absent), mounting the real `WorkspaceShell` at `/`. **`app/page.tsx`
+  (the static placeholder) was deleted** — Next.js route groups don't add a URL segment, so it
+  and `app/(workspace)/page.tsx` both resolved to `/` and could not coexist. An anonymous visit to
+  `/` now redirects to `/login`; there is deliberately no public marketing page for this
+  invite-only beta.
+- `app/login/page.tsx`, `app/register/page.tsx` — registration requires `BETA_INVITE_CODE` (a
+  single shared secret, `.env`-configured; not a documented mechanism anywhere in the design
+  package, invented for the beta specifically since 10–20 known invitees don't need per-user
+  codes).
+
+**Four more real bugs found and fixed**, all invisible to `tsc`/`vitest` and only caught by
+actually building and running the thing end-to-end (same pattern as the two found earlier today):
+1. **`packages/guidance/src/caps.ts` and `packages/compose/src/index.ts` both imported
+   `node:crypto`** despite running in the browser (`spiritual-guidance.tsx` calls
+   `createClientSourceBlock`; every P2/P3/P4 composer calls `compose()`) — `next build` failed
+   outright the moment a real route actually pulled `WorkspaceShell` into the client bundle,
+   which nothing had done before today. Fixed by writing a dependency-free, synchronous SHA-256
+   (`packages/compose/src/sha256.ts`, verified against 5 known test vectors including a 1MB
+   multi-block message) plus `globalThis.crypto.getRandomValues`/`randomUUID` — both are on
+   `globalThis` in the browser and in Node 18+, unlike `node:crypto`. Kept synchronous
+   deliberately: Web Crypto's `subtle.digest` is Promise-based, which would have forced
+   `createClientSourceBlock` and its existing synchronous test suite
+   (`test/guidance/source-caps-and-commitment.test.ts`) to become async.
+2. **`Dockerfile`'s runner stage never copied `scripts/`** into the image — `scripts/migrate.ts`
+   (needed to actually create the schema in any real deployment) didn't exist in the running
+   container at all. One missing `COPY` line.
+3. **`truncateIpToPrefix` (`server/auth/index.ts`) mishandled every real-world "::"-compressed
+   IPv6 address** — `truncateIpToPrefix('::1')` produced the literal string `'::1::/48'`, which
+   Postgres's `inet` column type rejects, breaking every session creation from a real client.
+   The existing unit test only covered a fully-expanded IPv6 address, which a naive
+   `split(':')` happens to handle correctly — it never exercised the compressed form real
+   addresses actually use. Fixed with proper `::`-expansion; new test cases added.
+4. **The email-uniqueness check and the login lookup in `server/db/repositories/user.ts` compared
+   a `bytea` column to a plain hex string without `decode(..., 'hex')`.** Postgres didn't error —
+   it silently parsed the un-prefixed hex string under `bytea`'s legacy escape input format,
+   producing a value that matched nothing. Net effect: **the email-uniqueness constraint was
+   silently inert** (registering the same email twice always appeared to succeed as a new,
+   different account) **and logging in with the correct password always failed** ("Incorrect
+   email or password" every time). Caught only by actually registering and then logging back in
+   against a real database — every unit-level check (typecheck, the existing in-memory-only
+   test suite) was blind to it, because nothing before this exercised a real `bytea` comparison.
+
+**Verified live end-to-end against `https://ai.sdachurches.org`** (not just locally): register
+with the real invite code → session cookie issued → `/api/auth/me` confirms the session → `/`
+renders the real `WorkspaceShell` (Prayer Note, Spiritual Guidance, Pastor's Aids, Verification
+Workbench sidebar, Admin Console button — all real, not a placeholder) → logout → login with the
+correct password succeeds → an anonymous request to `/` redirects to `/login`. Also verified
+directly against the database: a **standard** conversation's message body round-trips through
+envelope encryption correctly, and an **ephemeral** conversation's message-with-content is
+rejected by the API (`EphemeralBodyPersistenceError`) with the resulting row's `body_enc`
+confirmed `NULL` in Postgres — the core "message bodies never reach the server for ephemeral
+conversations" invariant, checked against real rows, not just the in-memory test suite.
+
+Migrations run manually today (`docker compose exec web node_modules/.bin/tsx scripts/migrate.ts`
+after each deploy, documented, not automated into container startup — a deliberate scope
+boundary, not an oversight). `npm run ci` (300/300 tests, typecheck, lint, firewall,
+`check-docs.sh`) and `npm run build` both verified green throughout.
+
+**Explicitly not done, and not silently deferred** (Blocking item 6): `prayer-note.tsx`,
+`spiritual-guidance.tsx`, and `pastors-aids.tsx` still only compose-and-clipboard — none of them
+call the new conversation/message API to actually save anything, and doing that correctly for P2
+in particular requires care around its ephemeral-by-default behavior (PR-P2-08) that wasn't worth
+rushing in the same pass as the foundation work. The Admin Console renders but `actor` is still a
+hardcoded fake admin passed from `workspace-shell.tsx`, and every list inside it is mock data —
+there is no real role-based access control wired to the new session system yet.
 
 ### Closed beta deployed to ai.sdachurches.org — and a real product-readiness gap found (2026-09-11)
 Owner asked for the app to be deployed for closed-beta testing on a self-hosted Proxmox VE
@@ -534,7 +677,8 @@ is not relitigated from scratch.
 | 2 | **`Q-06`** — per-host terms review before the reachability probe may be enabled | Owner + counsel | `probe_enabled` stays `false` |
 | 3 | **`Q-14`** — published provider documentation sanctioning browser-origin calls with an end-user key | Owner + engineering | All BYOK work. Vendor silence is not consent |
 | ~~4~~ | ~~Migration validation of the two `substring` patterns in `evidence_record` against the target PostgreSQL~~ — **done 2026-09-11** against real PostgreSQL 16; see "Engineering validation against real PostgreSQL" above | Engineering | Closed |
-| 5 | **The Next.js application has no working routes.** No `app/(workspace)/page.tsx`, no `/api/*` beyond health checks, no database driver dependency. The tested `server/domain/*.ts` logic is not reachable from any page. `https://ai.sdachurches.org` currently serves a placeholder | Engineering | An actually usable closed beta. This is real, currently-unstarted application-layer work — routes, DB client wiring, auth/session glue — not a doc or config gap |
+| ~~5~~ | ~~The Next.js application has no working routes~~ — **auth, sessions, and conversation persistence wired 2026-09-11**; live end-to-end at `https://ai.sdachurches.org`. See "App-wiring: real auth, DB, and workspace" below for what's done vs. what's explicitly still stubbed | Engineering | Closed for the auth/conversation slice. Reopened narrower below as item 6 |
+| 6 | **P2/P3/P4 leaf components don't persist to the server yet.** `prayer-note.tsx`/`spiritual-guidance.tsx`/`pastors-aids.tsx` still compose-and-clipboard only (unchanged from before item 5); Admin Console has no real RBAC or data (mock arrays, client-supplied actor); migrations must be run manually on each deploy (`docker compose exec web node_modules/.bin/tsx scripts/migrate.ts`), not wired into container startup | Engineering | Members can register/log in and see the real workspace, but saving a prayer note, guidance conversation, or sermon outline to their account, and any admin action, still does nothing server-side |
 
 Items 2 and 3 are **gates, not schedule items.** Neither has a date and neither should be
 worked around.

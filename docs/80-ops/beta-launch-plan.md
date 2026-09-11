@@ -23,7 +23,10 @@ The closed beta is scoped to **10–20 participants** to validate workflows, usa
 
 - **Host:** `https://ai.sdachurches.org` — self-hosted Proxmox LXC behind a Cloudflare Tunnel ([ADR-0023](../90-decisions/adr/0023-beta-self-hosted-tunnel.md)), isolated from any future production host.
 - **Billing Mode:** `BILLING_MODE=off`. All beta participants receive full tier entitlements (Member or Pastor) at zero cost with no credit card required (AC-M1).
-- **Registration:** Restricted via invitation code (`REGISTRATION_OPEN=false`).
+- **Registration:** Gated by a single shared `BETA_INVITE_CODE` secret (env-configured on the
+  beta container, distributed to invitees out of band, rotated if it leaks). This is a beta-only
+  mechanism invented for this pilot's 10–20 known invitees — it is not the per-user
+  `REGISTRATION_OPEN` flag documented elsewhere for the general product, and does not need to be.
 - **Feature Flags:** `byok_enabled=false`, `maintenance_mode=false`.
 - **Infrastructure:** Docker container deployed behind Cloudflare with Strict TLS 1.3 and 300s TTL DNS.
 

@@ -9,7 +9,7 @@
  * 5. Ends with the SDAWS-CLAIMS-V1 output contract.
  */
 
-import crypto from 'node:crypto';
+import { sha256Hex } from './sha256.js';
 
 export interface SourceBlock {
   id: string;
@@ -52,11 +52,7 @@ export interface ComposeOutput {
  * Derives a 6-character hex nonce from a base seed and collision counter.
  */
 function deriveNonce(baseSeed: string, attempt: number): string {
-  return crypto
-    .createHash('sha256')
-    .update(`${baseSeed}:${attempt}`)
-    .digest('hex')
-    .slice(0, 6);
+  return sha256Hex(new TextEncoder().encode(`${baseSeed}:${attempt}`)).slice(0, 6);
 }
 
 /**

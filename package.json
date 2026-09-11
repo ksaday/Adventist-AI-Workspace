@@ -12,20 +12,24 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check:firewall": "./scripts/check-cost-firewall.sh",
+    "db:migrate": "tsx scripts/migrate.ts",
     "ci": "npm run typecheck && npm run lint && npm run check:firewall && npm run test && ./scripts/check-docs.sh"
   },
   "dependencies": {
     "next": "^14.2.23",
+    "pg": "^8.23.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "@types/pg": "^8.23.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.23",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   }
